@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     API_DEPARTURES,
     API_STOPS,
+    API_STOPS_GDANSK,
     DOMAIN,
     SCAN_INTERVAL_DEPARTURES,
 )
@@ -107,55 +108,132 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("All stop names already cached")
             return
 
-        _LOGGER.info("Fetching names for %d stops", len(missing_stops))
+        _LOGGER.info("Fetching names for %d stops: %s", len(missing_stops), missing_stops)
         
+        # Try Gdańsk-specific endpoint first, then fallback to full stops list
+        endpoints = [
+            (API_STOPS_GDANSK, "stopsingdansk.json"),
+            (API_STOPS, "stops.json"),
+        ]
+        
+        for url, name in endpoints:
+            still_missing = [s for s in missing_stops if str(s) not in self._stop_names_cache]
+            if not still_missing:
+                break
+                
+            _LOGGER.debug("Trying endpoint %s for %d stops", name, len(still_missing))
+            await self._fetch_stops_from_url(url, still_missing)
+        
+        # Add fallback for any still missing
+        still_missing = [s for s in missing_stops if str(s) not in self._stop_names_cache]
+        if still_missing:
+            _LOGGER.warning("Stops not found in any API: %s", still_missing)
+            self._add_fallback_names(still_missing)
+
+    async def _fetch_stops_from_url(self, url: str, missing_stops: list[int]) -> int:
+        """Fetch stop names from a specific URL. Returns count of found stops."""
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    API_STOPS, timeout=aiohttp.ClientTimeout(total=60)
+                    url, timeout=aiohttp.ClientTimeout(total=60)
                 ) as response:
+                    _LOGGER.debug("API %s response status: %s", url.split('/')[-1], response.status)
                     response.raise_for_status()
                     data = await response.json()
 
-            # Find the latest date key
-            dates = sorted(data.keys(), reverse=True)
-            if not dates:
-                _LOGGER.warning("No data in stops API response")
-                return
+            _LOGGER.debug("API response keys: %s", list(data.keys())[:5])
 
-            stops_data = data[dates[0]].get("stops", [])
-            
+            # Find the latest date key (format: "YYYY-MM-DD" or similar)
+            date_keys = [k for k in data.keys() if k not in ("lastUpdate", "stops")]
+            if date_keys:
+                dates = sorted(date_keys, reverse=True)
+                stops_data = data[dates[0]].get("stops", [])
+                _LOGGER.debug("Using date key: %s, found %d stops", dates[0], len(stops_data))
+            elif "stops" in data:
+                # Direct stops array
+                stops_data = data["stops"]
+                _LOGGER.debug("Using direct 'stops' key, found %d stops", len(stops_data))
+            else:
+                _LOGGER.warning("Unknown API structure. Keys: %s", list(data.keys()))
+                return 0
+
+            if not stops_data:
+                _LOGGER.warning("Empty stops data from API")
+                return 0
+
+            # Log first stop structure for debugging
+            if stops_data:
+                _LOGGER.debug("Sample stop keys: %s", list(stops_data[0].keys()))
+                _LOGGER.debug("Sample stop data: %s", {k: stops_data[0].get(k) for k in ['stopId', 'stopDesc', 'stopName', 'subName']})
+
             # Build lookup and cache missing stops
+            found_count = 0
+            missing_stops_set = set(missing_stops)
+            
             for stop in stops_data:
-                stop_id = str(stop.get("stopId", ""))
-                if stop_id and int(stop_id) in missing_stops:
-                    name = stop.get("stopDesc", "")
-                    sub_name = stop.get("subName", "")
+                stop_id_raw = stop.get("stopId")
+                if stop_id_raw is None:
+                    continue
                     
-                    self._stop_names_cache[stop_id] = {
-                        "name": f"{name} {sub_name}".strip() if sub_name else name,
+                stop_id = int(stop_id_raw)
+                
+                if stop_id in missing_stops_set and str(stop_id) not in self._stop_names_cache:
+                    # Try different name fields - stopDesc is from TRISTAR, stopName from schedule system
+                    name = (
+                        stop.get("stopDesc") or 
+                        stop.get("stopName") or 
+                        stop.get("stopShortName") or 
+                        stop.get("name") or
+                        ""
+                    )
+                    
+                    if not name:
+                        _LOGGER.debug("Stop %s has no name fields", stop_id)
+                        continue
+                    
+                    sub_name = stop.get("subName", "") or stop.get("platform", "")
+                    # subName is often the platform number like "01", "02"
+                    if sub_name:
+                        sub_name = str(sub_name).zfill(2) if str(sub_name).isdigit() else sub_name
+                    
+                    full_name = f"{name} {sub_name}".strip() if sub_name else name
+                    
+                    self._stop_names_cache[str(stop_id)] = {
+                        "name": full_name,
                         "short_name": name,
                         "platform": sub_name,
-                        "zone": stop.get("zoneName", ""),
+                        "zone": stop.get("zoneName", "") or stop.get("zone", ""),
                         "lat": stop.get("stopLat"),
                         "lon": stop.get("stopLon"),
-                        "type": stop.get("type", "BUS"),
+                        "type": "TRAM" if stop.get("type") == 2 else "BUS",
                     }
+                    found_count += 1
+                    _LOGGER.debug("Cached stop %s: %s", stop_id, full_name)
 
-            _LOGGER.info("Cached names for %d stops", len(self._stop_names_cache))
+            _LOGGER.info(
+                "Fetched %d/%d stop names from %s. Cache size: %d", 
+                found_count, len(missing_stops), url.split('/')[-1], len(self._stop_names_cache)
+            )
+            return found_count
 
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Network error from %s: %s", url.split('/')[-1], err)
+            return 0
         except Exception as err:
-            _LOGGER.error("Failed to load stop names: %s", err)
-            # Add fallback names for missing stops
-            for stop_id in missing_stops:
-                if str(stop_id) not in self._stop_names_cache:
-                    self._stop_names_cache[str(stop_id)] = {
-                        "name": f"Przystanek {stop_id}",
-                        "short_name": f"Przystanek {stop_id}",
-                        "platform": "",
-                        "zone": "",
-                        "is_fallback": True,
-                    }
+            _LOGGER.error("Error fetching from %s: %s", url.split('/')[-1], err, exc_info=True)
+            return 0
+
+    def _add_fallback_names(self, stop_ids: list[int]) -> None:
+        """Add fallback names for stops that couldn't be fetched."""
+        for stop_id in stop_ids:
+            if str(stop_id) not in self._stop_names_cache:
+                self._stop_names_cache[str(stop_id)] = {
+                    "name": f"Przystanek {stop_id}",
+                    "short_name": f"Przystanek {stop_id}",
+                    "platform": "",
+                    "zone": "",
+                    "is_fallback": True,
+                }
 
     def get_stop_name(self, stop_id: int | str) -> str:
         """Get cached stop name."""
