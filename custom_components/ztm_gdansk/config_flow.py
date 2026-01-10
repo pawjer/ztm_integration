@@ -36,7 +36,7 @@ async def validate_stops(hass: HomeAssistant, stop_ids: list[int]) -> dict[str, 
                 url = f"{API_DEPARTURES}?stopId={stop_id}"
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                     if resp.status == 200:
-                        data = await resp.json()
+                        data = await resp.json(content_type=None)
                         # API returns empty departures list for valid but inactive stops
                         if "departures" in data:
                             valid_stops.append(stop_id)
