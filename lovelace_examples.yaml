@@ -1,0 +1,150 @@
+# ============================================
+# ZTM GDAŃSK - KARTY LOVELACE
+# Do użycia z custom integration ztm_gdansk
+# ============================================
+
+# ============================================
+# KARTA 1: Panel Markdown (kompaktowa)
+# ============================================
+type: markdown
+title: 🚌 ZTM Gdańsk
+content: >
+  {% set stops = state_attr('sensor.ztm_panel', 'stops') | default([]) %}
+  
+  {% for stop in stops %}
+  ### 📍 {{ stop.stop_name }}
+  {% if stop.departures | length == 0 %}
+  *Brak odjazdów*
+  {% else %}
+  {% for dep in stop.departures %}
+  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** {{ dep.headsign[:22] }} | {% if dep.minutes <= 0 %}**teraz**{% elif dep.minutes <= 3 %}**{{ dep.minutes }} min**{% else %}{{ dep.minutes }} min{% endif %}{% if dep.delay > 2 %} <font color="#e74c3c">(+{{ dep.delay | int }})</font>{% elif dep.delay < -2 %} <font color="#27ae60">({{ dep.delay | int }})</font>{% endif %}
+
+  {% endfor %}
+  {% endif %}
+
+  {% endfor %}
+  ---
+  <small>🟢 GPS | ⚪ Rozkład | Akt: {{ states('sensor.ztm_panel') }}</small>
+
+---
+# ============================================
+# KARTA 2: Entities Card (prosta)
+# ============================================
+type: entities
+title: 🚌 Przystanki ZTM
+entities:
+  - entity: sensor.ztm_stop_14562
+    name: Przystanek 1
+    secondary_info: attribute
+    attribute: stop_name
+  - entity: sensor.ztm_stop_14563
+    name: Przystanek 2
+    secondary_info: attribute
+    attribute: stop_name
+  - entity: sensor.ztm_stop_2161
+  - entity: sensor.ztm_stop_2162
+  - entity: sensor.ztm_stop_9989
+  - entity: sensor.ztm_stop_1645
+  - entity: sensor.ztm_stop_1644
+  - type: divider
+  - entity: sensor.ztm_panel
+    name: Ostatnia aktualizacja
+
+---
+# ============================================
+# KARTA 3: Następne odjazdy (Glance)
+# ============================================
+type: glance
+title: ⏱️ Następne odjazdy
+entities:
+  - entity: sensor.ztm_next_14562
+    name: Stop 1
+  - entity: sensor.ztm_next_14563
+    name: Stop 2
+  - entity: sensor.ztm_next_2161
+    name: Stop 3
+  - entity: sensor.ztm_next_2162
+    name: Stop 4
+columns: 4
+
+---
+# ============================================
+# KARTA 4: LED Board Style (dark theme)
+# Wymaga card-mod z HACS
+# ============================================
+type: markdown
+title: null
+card_mod:
+  style: |
+    ha-card {
+      background: #1a1a1a;
+      color: #ff6600;
+      font-family: 'Courier New', monospace;
+      padding: 16px;
+    }
+    h3 { color: #ffaa00; margin: 8px 0 4px 0; }
+    p { margin: 2px 0; }
+content: >
+  {% set stops = state_attr('sensor.ztm_panel', 'stops') | default([]) %}
+  {% for stop in stops %}
+  ### {{ stop.stop_name | upper }}
+  {% for dep in stop.departures[:3] %}
+  {{ dep.route | string | center(4) }} {{ dep.headsign[:18] | truncate(18, true, '') }} {{ '%3d' | format(dep.minutes) }}min
+  {% endfor %}
+
+  {% endfor %}
+
+---
+# ============================================
+# KARTA 5: Vertical Stack z przyciskami
+# ============================================
+type: vertical-stack
+cards:
+  - type: markdown
+    content: >
+      {% set stops = state_attr('sensor.ztm_panel', 'stops') | default([]) %}
+      {% set total = state_attr('sensor.ztm_panel', 'total_departures') | default(0) %}
+      
+      ## 🚌 ZTM Gdańsk
+      **{{ stops | length }}** przystanków | **{{ total }}** odjazdów
+      
+      {% for stop in stops %}
+      ---
+      ### 📍 {{ stop.stop_name }}
+      {% for dep in stop.departures %}
+      {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** → {{ dep.headsign[:20] }} | {{ dep.minutes }} min
+      {% endfor %}
+      {% if stop.departures | length == 0 %}*Brak odjazdów*{% endif %}
+      {% endfor %}
+      
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Odśwież nazwy
+        icon: mdi:refresh
+        tap_action:
+          action: call-service
+          service: ztm_gdansk.refresh_stop_names
+      - type: button
+        name: Aktualizuj dane
+        icon: mdi:update
+        tap_action:
+          action: call-service
+          service: ztm_gdansk.force_update
+
+---
+# ============================================
+# KARTA 6: Auto-Entities (dynamiczna)
+# Wymaga custom:auto-entities z HACS
+# ============================================
+type: custom:auto-entities
+card:
+  type: entities
+  title: 🚌 Wszystkie przystanki ZTM
+filter:
+  include:
+    - entity_id: sensor.ztm_stop_*
+      not:
+        entity_id: sensor.ztm_stop_names
+sort:
+  method: name

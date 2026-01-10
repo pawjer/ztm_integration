@@ -1,0 +1,12 @@
+{
+  "domain": "ztm_gdansk",
+  "name": "ZTM Gdańsk",
+  "codeowners": ["@twoj-github"],
+  "config_flow": true,
+  "documentation": "https://github.com/twoj-github/ha-ztm-gdansk",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/twoj-github/ha-ztm-gdansk/issues",
+  "requirements": [],
+  "version": "1.0.0",
+  "integration_type": "hub"
+}

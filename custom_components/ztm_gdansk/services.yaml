@@ -1,0 +1,7 @@
+refresh_stop_names:
+  name: Odśwież nazwy przystanków
+  description: Wyczyść cache i pobierz ponownie nazwy wszystkich przystanków z API.
+
+force_update:
+  name: Wymuś aktualizację
+  description: Wymuś natychmiastowe pobranie danych o odjazdach.

@@ -1,0 +1,73 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ZTM Gdańsk",
+        "description": "Add ZTM Gdańsk stops to monitor.\n\nFind stop IDs at https://mapa.ztm.gda.pl",
+        "data": {
+          "stops": "Stop IDs",
+          "scan_interval": "Update interval (seconds)",
+          "max_departures": "Maximum departures"
+        },
+        "data_description": {
+          "stops": "Enter stop IDs separated by commas, e.g. 14562, 14563, 2161",
+          "scan_interval": "How often to fetch data (10-300 seconds)",
+          "max_departures": "How many departures to show per stop (1-20)"
+        }
+      }
+    },
+    "error": {
+      "no_stops": "No valid stop IDs provided",
+      "no_valid_stops": "None of the provided stops are valid",
+      "cannot_connect": "Cannot connect to ZTM API"
+    },
+    "abort": {
+      "already_configured": "Integration already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ZTM Gdańsk Options",
+        "description": "Change integration settings",
+        "data": {
+          "stops": "Stop IDs",
+          "scan_interval": "Update interval (seconds)",
+          "max_departures": "Maximum departures"
+        },
+        "data_description": {
+          "stops": "Enter stop IDs separated by commas",
+          "scan_interval": "How often to fetch data (10-300 seconds)",
+          "max_departures": "How many departures to show per stop (1-20)"
+        }
+      }
+    },
+    "error": {
+      "no_stops": "No valid stop IDs provided",
+      "no_valid_stops": "None of the provided stops are valid"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ztm_stop": {
+        "name": "Stop {stop_id}"
+      },
+      "ztm_next": {
+        "name": "Next departure"
+      },
+      "ztm_panel": {
+        "name": "ZTM Panel"
+      }
+    }
+  },
+  "services": {
+    "refresh_stop_names": {
+      "name": "Refresh stop names",
+      "description": "Clear cache and re-fetch all stop names from API."
+    },
+    "force_update": {
+      "name": "Force update",
+      "description": "Force immediate data refresh."
+    }
+  }
+}

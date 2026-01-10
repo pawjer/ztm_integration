@@ -1,0 +1,33 @@
+"""Constants for ZTM Gdańsk integration."""
+from datetime import timedelta
+
+DOMAIN = "ztm_gdansk"
+
+# API endpoints
+API_DEPARTURES = "https://ckan2.multimediagdansk.pl/departures"
+API_STOPS = "https://ckan.multimediagdansk.pl/dataset/c24aa637-3619-4dc2-a171-a23eec8f2172/resource/4c4025f0-01bf-41f7-a39f-d156d201b82b/download/stops.json"
+
+# Update intervals
+SCAN_INTERVAL_DEPARTURES = timedelta(seconds=30)
+SCAN_INTERVAL_STOPS = timedelta(hours=24)
+
+# Config keys
+CONF_STOPS = "stops"
+CONF_SCAN_INTERVAL = "scan_interval"
+CONF_MAX_DEPARTURES = "max_departures"
+
+# Defaults
+DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_MAX_DEPARTURES = 5
+
+# Attributes
+ATTR_STOP_NAME = "stop_name"
+ATTR_STOP_ID = "stop_id"
+ATTR_DEPARTURES = "departures"
+ATTR_NEXT_DEPARTURE = "next_departure"
+ATTR_DELAY = "delay"
+ATTR_IS_REALTIME = "is_realtime"
+ATTR_HEADSIGN = "headsign"
+ATTR_ROUTE = "route"
+ATTR_PLATFORM = "platform"
+ATTR_ZONE = "zone"

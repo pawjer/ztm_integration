@@ -1,0 +1,8 @@
+{
+  "name": "ZTM Gdańsk",
+  "render_readme": true,
+  "domains": ["sensor"],
+  "country": ["PL"],
+  "homeassistant": "2023.1.0",
+  "iot_class": "cloud_polling"
+}
