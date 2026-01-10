@@ -139,7 +139,7 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                 "route": dep.get("routeShortName", "?"),
                 "headsign": dep.get("headsign", "?"),
                 "minutes": minutes,
-                "delay": round(dep.get("delayInSeconds", 0) / 60, 1),
+                "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
                 "is_realtime": dep.get("status") == "REALTIME",
                 "estimated_time": est_time,
                 "theoretical_time": dep.get("theoreticalTime", ""),
@@ -212,8 +212,8 @@ class ZTMNextDepartureSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             return {}
 
         dep = departures[0]
-        delay_seconds = dep.get("delayInSeconds", 0)
-        
+        delay_seconds = dep.get("delayInSeconds") or 0
+
         return {
             ATTR_ROUTE: dep.get("routeShortName", "?"),
             ATTR_HEADSIGN: dep.get("headsign", "?"),
@@ -276,7 +276,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     "route": dep.get("routeShortName", "?"),
                     "headsign": dep.get("headsign", "?"),
                     "minutes": minutes,
-                    "delay": round(dep.get("delayInSeconds", 0) / 60, 1),
+                    "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
                     "realtime": dep.get("status") == "REALTIME",
                 })
 
