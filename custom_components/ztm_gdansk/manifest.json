@@ -7,6 +7,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/twoj-github/ha-ztm-gdansk/issues",
   "requirements": [],
-  "version": "1.0.0",
+  "version": "1.2.0",
   "integration_type": "hub"
 }

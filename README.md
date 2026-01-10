@@ -117,6 +117,7 @@ stops:
         minutes: 3
         delay: 1.5
         realtime: true
+        time: "15:35"
 total_stops: 4
 total_departures: 20
 ```
@@ -129,14 +130,23 @@ total_departures: 20
 type: markdown
 title: 🚌 ZTM Gdańsk
 content: >
-  {% set stops = state_attr('sensor.ztm_panel', 'stops') | default([]) %}
+  {% set stops = state_attr('sensor.ztm_panel', 'stops') %}
+  {% if stops is none or stops is not iterable %}
+  *Ładowanie danych...*
+  {% else %}
   {% for stop in stops %}
-  ### 📍 {{ stop.stop_name }}
+  ### 📍 {{ stop.stop_name | default('Przystanek ' ~ stop.stop_id) }}
+  {% if stop.departures and stop.departures | length > 0 %}
   {% for dep in stop.departures %}
-  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** {{ dep.headsign[:20] }} | {{ dep.minutes }} min
-  {% endfor %}
+  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** {{ dep.headsign[:20] }} | **{{ dep.time }}** ({{ dep.minutes }} min){% if dep.delay and dep.delay > 1 %} 🔴+{{ dep.delay | int }}{% endif %}
 
   {% endfor %}
+  {% else %}
+  *Brak odjazdów*
+  {% endif %}
+
+  {% endfor %}
+  {% endif %}
 ```
 
 ### Karta Entities
@@ -253,6 +263,15 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.2.0 (2026-01-11)
+- ✅ **Nowe pole "time"** w sensorze panelu - czas odjazdu w formacie HH:MM (czas lokalny)
+- ✅ **Poprawiona walidacja przystanków** - teraz sprawdza bazę danych przystanków zamiast bieżących odjazdów
+- ✅ **Naprawiono błędy API** - dodano obsługę nieprawidłowych nagłówków Content-Type
+- ✅ **Naprawiono błąd NoneType** - obsługa null w polu delayInSeconds
+- ✅ **Naprawiono opcje flow** - usunięto błąd 500 przy edycji konfiguracji
+- ✅ **Dodano oficjalne ikony ZTM** - logo dla HACS
+- 🎨 **Ulepszone karty Lovelace** - pokazują czas odjazdu, opóźnienia i stan ładowania
 
 ### 1.1.0
 - Konfiguracja przez UI (config_flow)
