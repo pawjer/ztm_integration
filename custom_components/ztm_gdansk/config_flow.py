@@ -166,7 +166,7 @@ class ZTMGdanskConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> ZTMGdanskOptionsFlow:
         """Get the options flow for this handler."""
-        return ZTMGdanskOptionsFlow(config_entry)
+        return ZTMGdanskOptionsFlow()
 
 
 class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
