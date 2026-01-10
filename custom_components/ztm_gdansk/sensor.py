@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_DELAY,
@@ -269,8 +270,12 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     est_time = dep.get("estimatedTime", "")
                     est_dt = datetime.fromisoformat(est_time.replace("Z", "+00:00"))
                     minutes = int((est_dt - datetime.now(est_dt.tzinfo)).total_seconds() / 60)
+                    # Convert UTC to local time and format as HH:MM
+                    local_dt = dt_util.as_local(est_dt)
+                    time_str = local_dt.strftime("%H:%M")
                 except (ValueError, TypeError):
                     minutes = -1
+                    time_str = "?"
 
                 formatted.append({
                     "route": dep.get("routeShortName", "?"),
@@ -278,6 +283,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     "minutes": minutes,
                     "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
                     "realtime": dep.get("status") == "REALTIME",
+                    "time": time_str,
                 })
 
             stops_data.append({

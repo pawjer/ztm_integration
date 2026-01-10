@@ -93,7 +93,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
             response.raise_for_status()
-            data = await response.json()
+            data = await response.json(content_type=None)
             return data.get("departures", [])
 
     async def _load_stop_names(self) -> None:
@@ -139,7 +139,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ) as response:
                     _LOGGER.debug("API %s response status: %s", url.split('/')[-1], response.status)
                     response.raise_for_status()
-                    data = await response.json()
+                    data = await response.json(content_type=None)
 
             _LOGGER.debug("API response keys: %s", list(data.keys())[:5])
 
