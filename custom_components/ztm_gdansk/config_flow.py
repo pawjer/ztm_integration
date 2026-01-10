@@ -14,6 +14,8 @@ from homeassistant.helpers import config_validation as cv
 
 from .const import (
     API_DEPARTURES,
+    API_STOPS,
+    API_STOPS_GDANSK,
     CONF_MAX_DEPARTURES,
     CONF_SCAN_INTERVAL,
     CONF_STOPS,
@@ -26,37 +28,65 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def validate_stops(hass: HomeAssistant, stop_ids: list[int]) -> dict[str, str]:
-    """Validate stop IDs by checking API."""
+    """Validate stop IDs by checking against stops database."""
     errors = {}
     valid_stops = []
-    
+
+    # Fetch stops database to validate stop IDs
+    stops_db = {}
     async with aiohttp.ClientSession() as session:
-        for stop_id in stop_ids:
+        # Try Gdańsk-only stops first (smaller, faster)
+        for url in [API_STOPS_GDANSK, API_STOPS]:
             try:
-                url = f"{API_DEPARTURES}?stopId={stop_id}"
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                     if resp.status == 200:
                         data = await resp.json(content_type=None)
-                        # Empty departures array is valid (no vehicles coming)
-                        if "departures" in data:
-                            valid_stops.append(stop_id)
-                        else:
-                            _LOGGER.warning("Stop %s returned invalid data", stop_id)
-                    else:
-                        _LOGGER.warning("Stop %s returned status %s", stop_id, resp.status)
+                        # Find latest date key
+                        date_keys = [k for k in data.keys() if k not in ("lastUpdate", "stops")]
+                        if date_keys:
+                            latest_date = sorted(date_keys, reverse=True)[0]
+                            stops_list = data.get(latest_date, [])
+                            stops_db = {int(stop.get("stopId", 0)): stop for stop in stops_list if stop.get("stopId")}
+                            _LOGGER.debug("Loaded %d stops from database for validation", len(stops_db))
+                            break
             except Exception as err:
-                _LOGGER.error("Error validating stop %s: %s", stop_id, err)
-    
+                _LOGGER.debug("Could not load stops from %s: %s", url.split('/')[-1], err)
+                continue
+
+    # If we couldn't load stops database, fall back to API check
+    if not stops_db:
+        _LOGGER.info("Could not load stops database, validating via departures API")
+        async with aiohttp.ClientSession() as session:
+            for stop_id in stop_ids:
+                try:
+                    url = f"{API_DEPARTURES}?stopId={stop_id}"
+                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status == 200:
+                            data = await resp.json(content_type=None)
+                            if "departures" in data:
+                                valid_stops.append(stop_id)
+                        else:
+                            _LOGGER.warning("Stop %s returned status %s", stop_id, resp.status)
+                except Exception as err:
+                    _LOGGER.error("Error validating stop %s: %s", stop_id, err)
+    else:
+        # Validate against stops database
+        for stop_id in stop_ids:
+            if stop_id in stops_db:
+                valid_stops.append(stop_id)
+                _LOGGER.debug("Stop %s validated: %s", stop_id, stops_db[stop_id].get("stopName", "Unknown"))
+            else:
+                _LOGGER.warning("Stop %s not found in stops database", stop_id)
+
     if not valid_stops:
         errors["base"] = "no_valid_stops"
     elif len(valid_stops) < len(stop_ids):
-        # Some stops invalid but continue with valid ones
         _LOGGER.warning(
             "Some stops were invalid. Valid: %s, Invalid: %s",
             valid_stops,
             set(stop_ids) - set(valid_stops)
         )
-    
+
     return errors, valid_stops
 
 
