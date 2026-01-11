@@ -7,6 +7,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/pawjer/ztm_integration/issues",
   "requirements": [],
-  "version": "1.6.2",
+  "version": "1.6.3",
   "integration_type": "hub"
 }

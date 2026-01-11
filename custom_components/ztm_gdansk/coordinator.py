@@ -361,6 +361,41 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return " ".join(icons)
 
+    def get_icons_legend(self) -> list[dict[str, str]]:
+        """Get legend for vehicle property icons with bilingual descriptions."""
+        return [
+            {
+                "icon": self._icons["wheelchair"],
+                "en": "Wheelchair accessibility",
+                "pl": "Dostępność dla wózków",
+            },
+            {
+                "icon": self._icons["bike"],
+                "en": "Bike racks",
+                "pl": "Wieszaki na rowery",
+            },
+            {
+                "icon": self._icons["low_floor"],
+                "en": "Low-floor vehicle",
+                "pl": "Pojazd niskopodłogowy",
+            },
+            {
+                "icon": self._icons["air_conditioning"],
+                "en": "Air conditioning",
+                "pl": "Klimatyzacja",
+            },
+            {
+                "icon": self._icons["usb"],
+                "en": "USB charging",
+                "pl": "Porty USB",
+            },
+            {
+                "icon": self._icons["kneeling"],
+                "en": "Kneeling mechanism",
+                "pl": "Mechanizm przyklęku",
+            },
+        ]
+
     def format_vehicle_properties(self, vehicle_code: int | str | None) -> dict[str, Any]:
         """Get formatted vehicle properties with all fields."""
         vehicle_info = self.get_vehicle_info(vehicle_code)

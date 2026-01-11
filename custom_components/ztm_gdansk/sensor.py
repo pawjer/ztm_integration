@@ -279,6 +279,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             "stops": stops_data,
             "total_stops": len(self._stop_ids),
             "total_departures": total_departures,
+            "icons_legend": self.coordinator.get_icons_legend(),
         }
 
     @property

@@ -170,6 +170,25 @@ departures:
 ### Atrybuty sensora panelu
 
 ```yaml
+icons_legend:
+  - icon: ♿
+    en: Wheelchair accessibility
+    pl: Dostępność dla wózków
+  - icon: 🚴
+    en: Bike racks
+    pl: Wieszaki na rowery
+  - icon: 🔽
+    en: Low-floor vehicle
+    pl: Pojazd niskopodłogowy
+  - icon: ❄️
+    en: Air conditioning
+    pl: Klimatyzacja
+  - icon: 🔌
+    en: USB charging
+    pl: Porty USB
+  - icon: ⬇️
+    en: Kneeling mechanism
+    pl: Mechanizm przyklęku
 stops:
   - stop_id: 14562
     stop_name: "Polsat Plus Arena Gdańsk 01"
@@ -272,6 +291,37 @@ cards:
           service: ztm_gdansk.force_update
 ```
 
+### Karta z legendą ikon
+
+```yaml
+type: markdown
+title: 🚌 ZTM Gdańsk
+content: >
+  {% set stops = state_attr('sensor.ztm_panel', 'stops') %}
+  {% set legend = state_attr('sensor.ztm_panel', 'icons_legend') %}
+  {% if stops is none or stops is not iterable %}
+  *Ładowanie danych...*
+  {% else %}
+  {% for stop in stops %}
+  ### {{ '🚊' if stop.stop_type == 'TRAM' else '🚌' }} {{ stop.stop_name }}
+  {% if stop.departures and stop.departures | length > 0 %}
+  {% for dep in stop.departures %}
+  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** → {{ dep.headsign }} | **{{ dep.time }}** ({{ dep.minutes }} min) {{ dep.vehicle_properties_icons }}
+  {% endfor %}
+  {% else %}
+  *Brak odjazdów*
+  {% endif %}
+
+  {% endfor %}
+
+  ---
+  **Legenda:**
+  {% for item in legend %}
+  {{ item.icon }} - {{ item.pl }}
+  {% endfor %}
+  {% endif %}
+```
+
 ## 🔧 Usługi
 
 | Usługa | Opis |
@@ -342,6 +392,11 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.6.3 (2026-01-11)
+- ✅ **Nowe pole `icons_legend`** w sensorze panelu - legenda ikon właściwości pojazdów
+- 📖 **Dwujęzyczna legenda** - każda ikona z opisem po polsku i angielsku
+- 🎨 **Przykład karty z legendą** - nowy przykład Lovelace wyświetlający legendę
 
 ### 1.6.2 (2026-01-11)
 - 🐛 **Naprawiono ładowanie bazy pojazdów** - właściwości pojazdów teraz wyświetlane prawidłowo

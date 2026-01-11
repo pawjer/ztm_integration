@@ -170,6 +170,25 @@ departures:
 ### Panel sensor attributes
 
 ```yaml
+icons_legend:
+  - icon: ♿
+    en: Wheelchair accessibility
+    pl: Dostępność dla wózków
+  - icon: 🚴
+    en: Bike racks
+    pl: Wieszaki na rowery
+  - icon: 🔽
+    en: Low-floor vehicle
+    pl: Pojazd niskopodłogowy
+  - icon: ❄️
+    en: Air conditioning
+    pl: Klimatyzacja
+  - icon: 🔌
+    en: USB charging
+    pl: Porty USB
+  - icon: ⬇️
+    en: Kneeling mechanism
+    pl: Mechanizm przyklęku
 stops:
   - stop_id: 14562
     stop_name: "Polsat Plus Arena Gdańsk 01"
@@ -272,6 +291,37 @@ cards:
           service: ztm_gdansk.force_update
 ```
 
+### Card with icons legend
+
+```yaml
+type: markdown
+title: 🚌 ZTM Gdańsk
+content: >
+  {% set stops = state_attr('sensor.ztm_panel', 'stops') %}
+  {% set legend = state_attr('sensor.ztm_panel', 'icons_legend') %}
+  {% if stops is none or stops is not iterable %}
+  *Loading data...*
+  {% else %}
+  {% for stop in stops %}
+  ### {{ '🚊' if stop.stop_type == 'TRAM' else '🚌' }} {{ stop.stop_name }}
+  {% if stop.departures and stop.departures | length > 0 %}
+  {% for dep in stop.departures %}
+  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** → {{ dep.headsign }} | **{{ dep.time }}** ({{ dep.minutes }} min) {{ dep.vehicle_properties_icons }}
+  {% endfor %}
+  {% else %}
+  *No departures*
+  {% endif %}
+
+  {% endfor %}
+
+  ---
+  **Legend:**
+  {% for item in legend %}
+  {{ item.icon }} - {{ item.en }}
+  {% endfor %}
+  {% endif %}
+```
+
 ## 🔧 Services
 
 | Service | Description |
@@ -342,6 +392,11 @@ The integration uses the official API [Open data ZTM in Gdańsk](https://ckan.mu
 Data provided under [Creative Commons Attribution](https://ckan.multimediagdansk.pl) license.
 
 ## 📝 Changelog
+
+### 1.6.3 (2026-01-11)
+- ✅ **New field `icons_legend`** in panel sensor - legend for vehicle property icons
+- 📖 **Bilingual legend** - each icon with description in Polish and English
+- 🎨 **Legend card example** - new Lovelace example displaying the legend
 
 ### 1.6.2 (2026-01-11)
 - 🐛 **Fixed vehicle database loading** - vehicle properties now display correctly
