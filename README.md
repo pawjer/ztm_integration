@@ -110,6 +110,7 @@ departures:
 stops:
   - stop_id: 14562
     stop_name: "Polsat Plus Arena Gdańsk 01"
+    stop_type: "BUS"  # BUS lub TRAM
     departures_count: 5
     departures:
       - route: "158"
@@ -135,7 +136,7 @@ content: >
   *Ładowanie danych...*
   {% else %}
   {% for stop in stops %}
-  ### 📍 {{ stop.stop_name | default('Przystanek ' ~ stop.stop_id) }}
+  ### {{ '🚊' if stop.stop_type == 'TRAM' else '🚌' }} {{ stop.stop_name | default('Przystanek ' ~ stop.stop_id) }}
   {% if stop.departures and stop.departures | length > 0 %}
   {% for dep in stop.departures %}
   {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** {{ dep.headsign[:20] }} | **{{ dep.time }}** ({{ dep.minutes }} min){% if dep.delay and dep.delay > 1 %} 🔴+{{ dep.delay | int }}{% endif %}
@@ -263,6 +264,11 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.2.1 (2026-01-11)
+- ✅ **Nowe pole "stop_type"** w sensorze panelu - rozróżnienie BUS/TRAM dla każdego przystanku
+- ⚡ **Optymalizacja wydajności** - zmniejszono liczbę wywołań do cache z 2 do 1 na przystanek
+- 🎨 **Ulepszona karta Lovelace** - dynamiczne ikony 🚌/🚊 w zależności od typu przystanku
 
 ### 1.2.0 (2026-01-11)
 - ✅ **Nowe pole "time"** w sensorze panelu - czas odjazdu w formacie HH:MM (czas lokalny)
