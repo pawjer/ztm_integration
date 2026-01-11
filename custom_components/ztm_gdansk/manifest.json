@@ -1,11 +1,11 @@
 {
   "domain": "ztm_gdansk",
   "name": "ZTM Gdańsk",
-  "codeowners": ["@twoj-github"],
+  "codeowners": ["@pawjer"],
   "config_flow": true,
-  "documentation": "https://github.com/twoj-github/ha-ztm-gdansk",
+  "documentation": "https://github.com/pawjer/ztm_integration",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/twoj-github/ha-ztm-gdansk/issues",
+  "issue_tracker": "https://github.com/pawjer/ztm_integration/issues",
   "requirements": [],
   "version": "1.2.0",
   "integration_type": "hub"

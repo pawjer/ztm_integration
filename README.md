@@ -21,7 +21,7 @@ Custom integration dla Home Assistant wyświetlająca odjazdy z przystanków ZTM
 
 1. Otwórz HACS → **Integracje**
 2. Kliknij `⋮` → **Repozytoria niestandardowe**
-3. Dodaj URL: `https://github.com/twoj-github/ha-ztm-gdansk`
+3. Dodaj URL: `https://github.com/pawjer/ztm_integration`
 4. Kategoria: **Integracja**
 5. Zainstaluj **ZTM Gdańsk**
 6. Zrestartuj Home Assistant
@@ -291,4 +291,4 @@ MIT
 
 ---
 
-**Problemy?** Otwórz [issue na GitHub](https://github.com/twoj-github/ha-ztm-gdansk/issues)
+**Problemy?** Otwórz [issue na GitHub](https://github.com/pawjer/ztm_integration/issues)
