@@ -150,7 +150,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     # Register services (once)
-    if not hass.services.has_service(DOMAIN, "refresh_stop_names"):
+    if not hass.services.has_service(DOMAIN, "force_update"):
         await _async_setup_services(hass)
 
     # Setup platforms
@@ -195,10 +195,24 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
                 await value.async_refresh_stop_names()
                 await value.async_request_refresh()
 
+    async def refresh_vehicles(call: ServiceCall) -> None:
+        """Refresh vehicles cache."""
+        _LOGGER.info("Refreshing vehicles cache")
+
+        # Find all coordinators
+        for key, value in hass.data[DOMAIN].items():
+            if isinstance(value, dict) and "coordinator" in value:
+                coordinator = value["coordinator"]
+                await coordinator.async_refresh_vehicles()
+                await coordinator.async_request_refresh()
+            elif key == "coordinator":
+                await value.async_refresh_vehicles()
+                await value.async_request_refresh()
+
     async def force_update(call: ServiceCall) -> None:
         """Force update of all data."""
         _LOGGER.info("Forcing data update")
-        
+
         for key, value in hass.data[DOMAIN].items():
             if isinstance(value, dict) and "coordinator" in value:
                 await value["coordinator"].async_request_refresh()
@@ -207,6 +221,9 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
 
     hass.services.async_register(
         DOMAIN, "refresh_stop_names", refresh_stop_names
+    )
+    hass.services.async_register(
+        DOMAIN, "refresh_vehicles", refresh_vehicles
     )
     hass.services.async_register(
         DOMAIN, "force_update", force_update

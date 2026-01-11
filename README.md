@@ -277,6 +277,7 @@ cards:
 | Usługa | Opis |
 |--------|------|
 | `ztm_gdansk.refresh_stop_names` | Wyczyść cache i pobierz ponownie nazwy przystanków |
+| `ztm_gdansk.refresh_vehicles` | Wyczyść cache i pobierz ponownie bazę pojazdów |
 | `ztm_gdansk.force_update` | Wymuś natychmiastowe pobranie danych o odjazdach |
 
 ### Przykład automatyzacji
@@ -341,6 +342,12 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.6.2 (2026-01-11)
+- 🐛 **Naprawiono ładowanie bazy pojazdów** - właściwości pojazdów teraz wyświetlane prawidłowo
+- ✅ **Nowa usługa `refresh_vehicles`** - pozwala wymusić przeładowanie bazy pojazdów
+- 🔧 **Poprawiono obsługę cache** - baza pojazdów nie jest oznaczana jako załadowana jeśli wystąpił błąd
+- 🌐 **Zaktualizowano URL API** - dodano parametr wersji aby uniknąć przekierowań
 
 ### 1.6.1 (2026-01-11)
 - 🌐 **Tłumaczenia UI** - dodano polskie i angielskie tłumaczenia interfejsu

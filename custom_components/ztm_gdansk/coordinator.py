@@ -79,8 +79,9 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Lazy load vehicles database on first run
             if not self._vehicles_loaded:
-                await self._load_vehicles()
-                self._vehicles_loaded = True
+                success = await self._load_vehicles()
+                if success:
+                    self._vehicles_loaded = True
 
             # Fetch departures for all stops
             departures = await self._fetch_all_departures()
@@ -295,8 +296,16 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self._load_stop_names()
         self._stop_names_loaded = True
 
-    async def _load_vehicles(self) -> None:
-        """Load vehicle database from API."""
+    async def async_refresh_vehicles(self) -> None:
+        """Force refresh of vehicles cache."""
+        self._vehicles_loaded = False
+        self._vehicles_cache.clear()
+        success = await self._load_vehicles()
+        if success:
+            self._vehicles_loaded = True
+
+    async def _load_vehicles(self) -> bool:
+        """Load vehicle database from API. Returns True on success."""
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
@@ -321,9 +330,11 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     }
 
             _LOGGER.info("Loaded %d vehicles into cache", len(self._vehicles_cache))
+            return True
 
         except Exception as err:
             _LOGGER.warning("Could not load vehicles database: %s", err)
+            return False
 
     def get_vehicle_info(self, vehicle_code: int | str | None) -> dict[str, Any]:
         """Get cached vehicle info."""

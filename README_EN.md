@@ -277,6 +277,7 @@ cards:
 | Service | Description |
 |---------|-------------|
 | `ztm_gdansk.refresh_stop_names` | Clear cache and fetch stop names again |
+| `ztm_gdansk.refresh_vehicles` | Clear cache and fetch vehicle database again |
 | `ztm_gdansk.force_update` | Force immediate fetch of departure data |
 
 ### Automation example
@@ -341,6 +342,12 @@ The integration uses the official API [Open data ZTM in Gdańsk](https://ckan.mu
 Data provided under [Creative Commons Attribution](https://ckan.multimediagdansk.pl) license.
 
 ## 📝 Changelog
+
+### 1.6.2 (2026-01-11)
+- 🐛 **Fixed vehicle database loading** - vehicle properties now display correctly
+- ✅ **New service `refresh_vehicles`** - allows forcing vehicle database reload
+- 🔧 **Improved cache handling** - vehicle database not marked as loaded if error occurs
+- 🌐 **Updated API URL** - added version parameter to avoid redirects
 
 ### 1.6.1 (2026-01-11)
 - 🌐 **UI translations** - added Polish and English interface translations
