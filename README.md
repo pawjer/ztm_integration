@@ -393,6 +393,12 @@ Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multi
 
 ## 📝 Changelog
 
+### 1.6.4 (2026-01-11)
+- 🔄 **Retry logic dla API** - automatyczne ponawianie żądań przy błędach (3 próby z wykładniczym opóźnieniem)
+- 💾 **Cache ostatnich odjazdów** - wyświetla ostatnie poprawne dane gdy API nie odpowiada
+- 🛡️ **Zapobieganie czyszczeniu danych** - panel nigdy nie zostanie wyczyszczony przy przejściowych błędach API
+- 📊 **Per-stop cache** - każdy przystanek ma własny cache, błąd jednego nie wpływa na pozostałe
+
 ### 1.6.3 (2026-01-11)
 - ✅ **Nowe pole `icons_legend`** w sensorze panelu - legenda ikon właściwości pojazdów
 - 📖 **Dwujęzyczna legenda** - każda ikona z opisem po polsku i angielsku

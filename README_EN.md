@@ -393,6 +393,12 @@ Data provided under [Creative Commons Attribution](https://ckan.multimediagdansk
 
 ## 📝 Changelog
 
+### 1.6.4 (2026-01-11)
+- 🔄 **API retry logic** - automatic retry on failures (3 attempts with exponential backoff)
+- 💾 **Last departures cache** - displays last valid data when API is down
+- 🛡️ **Prevent data clearing** - panel never gets cleared on transient API errors
+- 📊 **Per-stop cache** - each stop has its own cache, one failure doesn't affect others
+
 ### 1.6.3 (2026-01-11)
 - ✅ **New field `icons_legend`** in panel sensor - legend for vehicle property icons
 - 📖 **Bilingual legend** - each icon with description in Polish and English

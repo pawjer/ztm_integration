@@ -13,6 +13,10 @@ API_VEHICLES = "https://files.cloudgdansk.pl/d/otwarte-dane/ztm/baza-pojazdow.js
 SCAN_INTERVAL_DEPARTURES = timedelta(seconds=30)
 SCAN_INTERVAL_STOPS = timedelta(hours=24)
 
+# Retry configuration
+MAX_RETRIES = 3
+RETRY_DELAY = 1.0  # seconds
+
 # Config keys
 CONF_STOPS = "stops"
 CONF_SCAN_INTERVAL = "scan_interval"

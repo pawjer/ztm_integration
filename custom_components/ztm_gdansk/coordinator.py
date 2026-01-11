@@ -23,6 +23,8 @@ from .const import (
     ICON_LOW_FLOOR,
     ICON_USB,
     ICON_WHEELCHAIR,
+    MAX_RETRIES,
+    RETRY_DELAY,
     SCAN_INTERVAL_DEPARTURES,
 )
 
@@ -54,6 +56,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stop_names_loaded = False
         self._vehicles_cache: dict[str, dict[str, Any]] = {}
         self._vehicles_loaded = False
+        self._last_valid_departures: dict[str, list[dict]] = {}  # Cache last valid data
 
         # Store custom icons or use defaults
         self._icons = {
@@ -85,48 +88,125 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Fetch departures for all stops
             departures = await self._fetch_all_departures()
-            
+
+            # Store valid departures as cache
+            self._last_valid_departures = departures
+
             return {
                 "departures": departures,
                 "stop_names": self._stop_names_cache,
                 "last_update": datetime.now().isoformat(),
             }
 
-        except aiohttp.ClientError as err:
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            # If we have cached data, return it instead of failing
+            if self._last_valid_departures:
+                _LOGGER.warning(
+                    "API error, using cached departures: %s",
+                    err
+                )
+                return {
+                    "departures": self._last_valid_departures,
+                    "stop_names": self._stop_names_cache,
+                    "last_update": datetime.now().isoformat(),
+                }
+            # No cached data available, fail
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         except Exception as err:
+            # For other errors, try to use cache
+            if self._last_valid_departures:
+                _LOGGER.warning(
+                    "Error fetching data, using cached departures: %s",
+                    err
+                )
+                return {
+                    "departures": self._last_valid_departures,
+                    "stop_names": self._stop_names_cache,
+                    "last_update": datetime.now().isoformat(),
+                }
             raise UpdateFailed(f"Error fetching data: {err}") from err
 
     async def _fetch_all_departures(self) -> dict[str, list[dict]]:
         """Fetch departures for all configured stops."""
         departures = {}
-        
+
         async with aiohttp.ClientSession() as session:
             tasks = [
                 self._fetch_stop_departures(session, stop_id)
                 for stop_id in self.stop_ids
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for stop_id, result in zip(self.stop_ids, results):
+                stop_id_str = str(stop_id)
                 if isinstance(result, Exception):
-                    _LOGGER.warning("Failed to fetch departures for stop %s: %s", stop_id, result)
-                    departures[str(stop_id)] = []
+                    # Try to use cached data for this stop
+                    if stop_id_str in self._last_valid_departures:
+                        _LOGGER.warning(
+                            "Failed to fetch departures for stop %s: %s. Using cached data.",
+                            stop_id,
+                            result
+                        )
+                        departures[stop_id_str] = self._last_valid_departures[stop_id_str]
+                    else:
+                        _LOGGER.warning(
+                            "Failed to fetch departures for stop %s: %s. No cached data available.",
+                            stop_id,
+                            result
+                        )
+                        departures[stop_id_str] = []
                 else:
-                    departures[str(stop_id)] = result
+                    departures[stop_id_str] = result
 
         return departures
 
     async def _fetch_stop_departures(
         self, session: aiohttp.ClientSession, stop_id: int
     ) -> list[dict]:
-        """Fetch departures for a single stop."""
+        """Fetch departures for a single stop with retry logic."""
         url = f"{API_DEPARTURES}?stopId={stop_id}"
-        
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
-            response.raise_for_status()
-            data = await response.json(content_type=None)
-            return data.get("departures", [])
+        last_error = None
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                    response.raise_for_status()
+                    data = await response.json(content_type=None)
+                    departures = data.get("departures", [])
+
+                    # Log retry success
+                    if attempt > 0:
+                        _LOGGER.info(
+                            "Successfully fetched departures for stop %s on attempt %d/%d",
+                            stop_id,
+                            attempt + 1,
+                            MAX_RETRIES
+                        )
+
+                    return departures
+
+            except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+                last_error = err
+                if attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAY * (2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+                    _LOGGER.debug(
+                        "Failed to fetch departures for stop %s (attempt %d/%d): %s. Retrying in %.1fs...",
+                        stop_id,
+                        attempt + 1,
+                        MAX_RETRIES,
+                        err,
+                        delay
+                    )
+                    await asyncio.sleep(delay)
+
+        # All retries failed
+        _LOGGER.warning(
+            "Failed to fetch departures for stop %s after %d attempts: %s",
+            stop_id,
+            MAX_RETRIES,
+            last_error
+        )
+        raise last_error if last_error else Exception(f"Failed to fetch departures for stop {stop_id}")
 
     async def _load_stop_names(self) -> None:
         """Load stop names from API (lazy loading with cache)."""
