@@ -292,6 +292,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "air_conditioning": vehicle.get("airConditioning", False),
                         "usb": vehicle.get("usb", False),
                         "bike_holders": vehicle.get("bikeHolders", 0),
+                        "kneeling_mechanism": vehicle.get("kneelingMechanism", False),
                         "brand": vehicle.get("brand", ""),
                         "model": vehicle.get("model", ""),
                     }

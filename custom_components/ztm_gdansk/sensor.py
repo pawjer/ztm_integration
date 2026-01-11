@@ -150,6 +150,10 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                 "vehicle_code": vehicle_code,
                 "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
                 "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
+                "vehicle_low_floor": vehicle_info.get("low_floor", False),
+                "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
+                "vehicle_usb": vehicle_info.get("usb", False),
+                "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
                 "last_update": dep.get("timestamp"),
             })
 
@@ -238,6 +242,10 @@ class ZTMNextDepartureSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             "vehicle_code": vehicle_code,
             "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
             "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
+            "vehicle_low_floor": vehicle_info.get("low_floor", False),
+            "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
+            "vehicle_usb": vehicle_info.get("usb", False),
+            "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
             "last_update": dep.get("timestamp"),
         }
 
@@ -328,6 +336,10 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     "vehicle_code": vehicle_code,
                     "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
                     "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
+                    "vehicle_low_floor": vehicle_info.get("low_floor", False),
+                    "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
+                    "vehicle_usb": vehicle_info.get("usb", False),
+                    "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
                     "scheduled_time": theoretical_time_str,
                     "last_update": dep.get("timestamp"),
                 })

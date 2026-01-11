@@ -104,6 +104,10 @@ departures:
     vehicle_code: 3013        # Numer pojazdu
     vehicle_wheelchair_accessible: true  # ♿ Pojazd dostępny dla wózków (rampa)
     vehicle_bike_capacity: 1  # 🚴 Liczba miejsc na rowery (0 = brak)
+    vehicle_low_floor: true   # Pojazd niskopodłogowy
+    vehicle_air_conditioning: true  # Klimatyzacja
+    vehicle_usb: true         # Porty USB
+    vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
     last_update: "2024-01-15T14:32:49Z"  # Ostatnia aktualizacja GPS
   - route: "258"
     headsign: "Stogi Plaża"
@@ -134,6 +138,10 @@ stops:
         vehicle_code: 3013         # Numer pojazdu
         vehicle_wheelchair_accessible: true  # ♿ Pojazd z rampą
         vehicle_bike_capacity: 1   # 🚴 Liczba miejsc na rowery
+        vehicle_low_floor: true    # Pojazd niskopodłogowy
+        vehicle_air_conditioning: true  # Klimatyzacja
+        vehicle_usb: true          # Porty USB
+        vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
         last_update: "2024-01-15T14:32:49Z"
 total_stops: 4
 total_departures: 20
@@ -280,6 +288,14 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.3.2 (2026-01-11)
+- ✅ **Nowe pola właściwości pojazdów**:
+  - `vehicle_low_floor` - pojazd niskopodłogowy
+  - `vehicle_air_conditioning` - klimatyzacja w pojeździe
+  - `vehicle_usb` - dostępność portów USB
+  - `vehicle_kneeling_mechanism` - mechanizm przyklęku pojazdu
+- 📊 **Wszystkie sensory** - nowe pola dostępne w sensor.ztm_stop_*, sensor.ztm_next_*, i sensor.ztm_panel
 
 ### 1.3.1 (2026-01-11)
 - ✅ **Nowe pole**: `vehicle_bike_capacity` - 🚴 liczba miejsc na rowery w pojeździe (0-2)
