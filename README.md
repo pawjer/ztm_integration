@@ -5,6 +5,8 @@
 
 Custom integration dla Home Assistant wyświetlająca odjazdy z przystanków ZTM Gdańsk w czasie rzeczywistym.
 
+[🇬🇧 English version](README_EN.md)
+
 ## ✨ Funkcje
 
 - 🚌 **Odjazdy w czasie rzeczywistym** - dane GPS z pojazdów
