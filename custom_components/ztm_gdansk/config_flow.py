@@ -16,6 +16,7 @@ from .const import (
     API_DEPARTURES,
     API_STOPS,
     API_STOPS_GDANSK,
+    CONF_DEPARTURE_FORMAT,
     CONF_ICON_AIR_CONDITIONING,
     CONF_ICON_BIKE,
     CONF_ICON_KNEELING,
@@ -25,6 +26,7 @@ from .const import (
     CONF_MAX_DEPARTURES,
     CONF_SCAN_INTERVAL,
     CONF_STOPS,
+    DEFAULT_DEPARTURE_FORMAT,
     DEFAULT_MAX_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -190,7 +192,7 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
         """Show options menu."""
         return self.async_show_menu(
             step_id="init",
-            menu_options=["general", "icons"],
+            menu_options=["general", "icons", "departure_format"],
         )
 
     async def async_step_general(
@@ -300,5 +302,45 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
             ),
             description_placeholders={
                 "defaults": f"Defaults: {ICON_WHEELCHAIR} {ICON_BIKE} {ICON_LOW_FLOOR} {ICON_AIR_CONDITIONING} {ICON_USB} {ICON_KNEELING}",
+            },
+        )
+
+    async def async_step_departure_format(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage departure string formatting."""
+        if user_input is not None:
+            # Merge with existing options (preserve other settings)
+            new_options = dict(self.config_entry.options)
+            new_options.update({
+                CONF_DEPARTURE_FORMAT: user_input.get(CONF_DEPARTURE_FORMAT, DEFAULT_DEPARTURE_FORMAT),
+            })
+
+            return self.async_create_entry(title="", data=new_options)
+
+        # Get current format or default
+        current_format = self.config_entry.options.get(CONF_DEPARTURE_FORMAT, DEFAULT_DEPARTURE_FORMAT)
+
+        return self.async_show_form(
+            step_id="departure_format",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_DEPARTURE_FORMAT, default=current_format): str,
+                }
+            ),
+            description_placeholders={
+                "default": DEFAULT_DEPARTURE_FORMAT,
+                "placeholders": (
+                    "Available placeholders:\n"
+                    "{route} - route number\n"
+                    "{headsign} - destination\n"
+                    "{time} - departure time (HH:MM)\n"
+                    "{scheduled_time} - scheduled time (HH:MM)\n"
+                    "{minutes} - minutes until departure\n"
+                    "{delay} - delay in minutes\n"
+                    "{vehicle_code} - vehicle number\n"
+                    "{vehicle_properties_icons} - vehicle amenity icons\n"
+                    "{realtime} - True/False for real-time data"
+                ),
             },
         )

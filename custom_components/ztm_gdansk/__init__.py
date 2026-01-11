@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
+    CONF_DEPARTURE_FORMAT,
     CONF_ICON_AIR_CONDITIONING,
     CONF_ICON_BIKE,
     CONF_ICON_KNEELING,
@@ -125,6 +126,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "kneeling": entry.options.get(CONF_ICON_KNEELING),
         }
 
+    # Get departure format template from options (if configured)
+    departure_format = entry.options.get(CONF_DEPARTURE_FORMAT)
+
     _LOGGER.info(
         "Setting up ZTM Gdańsk (UI) with %d stops, interval: %ds, max: %d",
         len(stop_ids),
@@ -133,7 +137,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     # Create coordinator
-    coordinator = ZTMCoordinator(hass, stop_ids, scan_interval, max_departures, custom_icons)
+    coordinator = ZTMCoordinator(
+        hass, stop_ids, scan_interval, max_departures, custom_icons, departure_format
+    )
     await coordinator.async_config_entry_first_refresh()
 
     # Store data

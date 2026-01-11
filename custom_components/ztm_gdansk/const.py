@@ -23,10 +23,12 @@ CONF_ICON_LOW_FLOOR = "icon_low_floor"
 CONF_ICON_AIR_CONDITIONING = "icon_air_conditioning"
 CONF_ICON_USB = "icon_usb"
 CONF_ICON_KNEELING = "icon_kneeling"
+CONF_DEPARTURE_FORMAT = "departure_format"
 
 # Defaults
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_MAX_DEPARTURES = 5
+DEFAULT_DEPARTURE_FORMAT = "{route} → {headsign} | {time} ({minutes} min)"
 
 # Attributes
 ATTR_STOP_NAME = "stop_name"

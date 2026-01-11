@@ -67,6 +67,7 @@ ztm_gdansk:
 3. Wybierz opcję:
    - **General** - numery przystanków, interwał odświeżania, liczba odjazdów
    - **Icons** - dostosuj ikony właściwości pojazdów (♿ 🚴 🔽 ❄️ 🔌 ⬇️)
+   - **Departure Format** - dostosuj format wyświetlania odjazdów
 4. Integracja automatycznie się przeładuje
 
 ### Personalizacja ikon
@@ -83,6 +84,33 @@ Możesz dostosować ikony wyświetlane dla właściwości pojazdów:
    - **USB** (🔌) - porty USB
    - **Kneeling** (⬇️) - mechanizm przyklęku
 4. Ikony pojawią się w polu `vehicle_properties_icons` każdego odjazdu
+
+### Personalizacja formatu odjazdów
+
+Możesz dostosować format wyświetlania informacji o odjazdach:
+
+1. **Ustawienia** → **Urządzenia i usługi** → **ZTM Gdańsk** → **Konfiguruj**
+2. Wybierz **Departure Format**
+3. Wprowadź własny szablon używając placeholderów:
+
+**Dostępne placeholders:**
+- `{route}` - numer linii (np. "158")
+- `{headsign}` - kierunek (np. "Wrzeszcz PKP")
+- `{time}` - czas odjazdu w formacie HH:MM (np. "14:35")
+- `{scheduled_time}` - czas rozkładowy HH:MM (np. "14:33")
+- `{minutes}` - minuty do odjazdu (np. 3)
+- `{delay}` - opóźnienie w minutach (np. 1.5)
+- `{vehicle_code}` - numer pojazdu (np. 3013)
+- `{vehicle_properties_icons}` - ikony właściwości pojazdu (np. "♿ 🚴 ❄️")
+- `{realtime}` - czy dane są w czasie rzeczywistym (True/False)
+
+**Przykładowe szablony:**
+- Domyślny: `{route} → {headsign} | {time} ({minutes} min)`
+- Kompaktowy: `{route} {headsign} {time}`
+- Pełny: `🚌 {route} to {headsign} in {minutes} min {vehicle_properties_icons}`
+- Z numerem pojazdu: `{route} ({vehicle_code}) → {headsign} | {time}`
+
+4. Sformatowany tekst pojawi się w polu `departure_string` każdego odjazdu
 
 ## 🔍 Jak znaleźć ID przystanku?
 
@@ -128,6 +156,7 @@ departures:
     vehicle_usb: true         # Porty USB
     vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
     vehicle_properties_icons: "♿ 🚴 🔽 ❄️ 🔌 ⬇️"  # Ikony właściwości pojazdu
+    departure_string: "158 → Wrzeszcz PKP | 14:35 (3 min)"  # Sformatowany tekst odjazdu
     last_update: "2024-01-15T14:32:49Z"  # Ostatnia aktualizacja GPS
   - route: "258"
     headsign: "Stogi Plaża"
@@ -163,6 +192,7 @@ stops:
         vehicle_usb: true          # Porty USB
         vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
         vehicle_properties_icons: "♿ 🚴 🔽 ❄️ 🔌 ⬇️"  # Ikony właściwości pojazdu
+        departure_string: "158 → Wrzeszcz PKP | 15:35 (3 min)"  # Sformatowany tekst odjazdu
         last_update: "2024-01-15T14:32:49Z"
 total_stops: 4
 total_departures: 20
@@ -309,6 +339,18 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.6.0 (2026-01-11)
+- ✅ **Konfigurowalny format odjazdów** - możliwość personalizacji wyświetlania odjazdów przez UI
+- 📝 **Nowe pole `departure_string`** - sformatowany tekst odjazdu według szablonu użytkownika
+- 🎨 **9 dostępnych placeholderów**:
+  - {route}, {headsign}, {time}, {scheduled_time}
+  - {minutes}, {delay}, {vehicle_code}
+  - {vehicle_properties_icons}, {realtime}
+- 🔧 **Szablon konfigurowalny przez UI** - w menu Departure Format
+- 💡 **Przykładowe szablony** - w dokumentacji z różnymi stylami formatowania
+- ⚡ **Automatyczne formatowanie** - template zastosowany do wszystkich odjazdów
+- 🛡️ **Bezpieczne formatowanie** - fallback przy błędach w szablonie
 
 ### 1.5.0 (2026-01-11)
 - ✅ **Konfigurowalne ikony** - możliwość personalizacji ikon właściwości pojazdów przez UI

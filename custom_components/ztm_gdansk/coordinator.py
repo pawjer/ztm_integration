@@ -39,6 +39,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         scan_interval: int = 30,
         max_departures: int = 5,
         custom_icons: dict[str, str] | None = None,
+        departure_format: str | None = None,
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
@@ -63,6 +64,10 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "usb": (custom_icons or {}).get("usb", ICON_USB),
             "kneeling": (custom_icons or {}).get("kneeling", ICON_KNEELING),
         }
+
+        # Store departure format template (import needed for default)
+        from .const import DEFAULT_DEPARTURE_FORMAT
+        self._departure_format = departure_format or DEFAULT_DEPARTURE_FORMAT
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API."""
@@ -409,4 +414,30 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             result["realtime"] = dep.get("status") == "REALTIME"
 
+        # Add formatted departure string
+        result["departure_string"] = self.format_departure_string(result)
+
         return result
+
+    def format_departure_string(self, departure_data: dict[str, Any]) -> str:
+        """Format departure data into a custom string using template."""
+        try:
+            # Prepare data for formatting
+            format_data = {
+                "route": departure_data.get("route", "?"),
+                "headsign": departure_data.get("headsign", "?"),
+                "time": departure_data.get("time", "?"),
+                "scheduled_time": departure_data.get("scheduled_time") or "?",
+                "minutes": departure_data.get("minutes", 0),
+                "delay": departure_data.get("delay", 0),
+                "vehicle_code": departure_data.get("vehicle_code") or "",
+                "vehicle_properties_icons": departure_data.get("vehicle_properties_icons", ""),
+                "realtime": departure_data.get("realtime", departure_data.get("is_realtime", False)),
+            }
+
+            # Format using template
+            return self._departure_format.format(**format_data)
+        except (KeyError, ValueError) as err:
+            _LOGGER.warning("Error formatting departure string: %s", err)
+            # Fallback to simple format
+            return f"{format_data['route']} → {format_data['headsign']} | {format_data['time']}"
