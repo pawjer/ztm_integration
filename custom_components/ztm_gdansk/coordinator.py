@@ -205,7 +205,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "zone": stop.get("zoneName", "") or stop.get("zone", ""),
                         "lat": stop.get("stopLat"),
                         "lon": stop.get("stopLon"),
-                        "type": "TRAM" if stop.get("type") == 2 else "BUS",
+                        "type": stop.get("type", "BUS"),  # API returns "BUS" or "TRAM" as string
                     }
                     found_count += 1
                     _LOGGER.debug("Cached stop %s: %s", stop_id, full_name)
@@ -232,6 +232,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "short_name": f"Przystanek {stop_id}",
                     "platform": "",
                     "zone": "",
+                    "type": "BUS",
                     "is_fallback": True,
                 }
 
