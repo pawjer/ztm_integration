@@ -259,7 +259,9 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
 
         for stop_id in self._stop_ids:
             departures = self.coordinator.get_departures(stop_id)
-            stop_name = self.coordinator.get_stop_name(stop_id)
+            stop_info = self.coordinator.get_stop_info(stop_id)
+            stop_name = stop_info.get("name", f"Przystanek {stop_id}")
+            stop_type = stop_info.get("type", "BUS")
             total_departures += len(departures)
 
             # Format departures
@@ -289,6 +291,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             stops_data.append({
                 "stop_id": stop_id,
                 "stop_name": stop_name,
+                "stop_type": stop_type,
                 "departures_count": len(departures),
                 "departures": formatted,
             })
