@@ -90,6 +90,9 @@ stop_id: 14562
 stop_name: "Polsat Plus Arena Gdańsk 01"
 platform: "01"
 zone: "Gdańsk"
+wheelchair_accessible: true  # ♿ Dostępny dla wózków
+on_demand: false             # 📞 Na żądanie (wymaga wcześniejszego zgłoszenia)
+zone_border: false           # 🎫 Granica strefy biletowej
 departures:
   - route: "158"
     headsign: "Wrzeszcz PKP"
@@ -97,6 +100,10 @@ departures:
     delay: 1.5
     is_realtime: true
     estimated_time: "2024-01-15T14:35:00Z"
+    theoretical_time: "2024-01-15T14:33:00Z"  # Czas rozkładowy
+    vehicle_code: 3013        # Numer pojazdu
+    vehicle_wheelchair_accessible: true  # ♿ Pojazd dostępny dla wózków (rampa)
+    last_update: "2024-01-15T14:32:49Z"  # Ostatnia aktualizacja GPS
   - route: "258"
     headsign: "Stogi Plaża"
     minutes: 8
@@ -111,6 +118,9 @@ stops:
   - stop_id: 14562
     stop_name: "Polsat Plus Arena Gdańsk 01"
     stop_type: "BUS"  # BUS lub TRAM
+    wheelchair_accessible: true
+    on_demand: false
+    zone_border: false
     departures_count: 5
     departures:
       - route: "158"
@@ -118,7 +128,11 @@ stops:
         minutes: 3
         delay: 1.5
         realtime: true
-        time: "15:35"
+        time: "15:35"              # Czas odjazdu (czas lokalny)
+        scheduled_time: "15:33"    # Czas rozkładowy (czas lokalny)
+        vehicle_code: 3013         # Numer pojazdu
+        vehicle_wheelchair_accessible: true  # ♿ Pojazd z rampą
+        last_update: "2024-01-15T14:32:49Z"
 total_stops: 4
 total_departures: 20
 ```
@@ -136,10 +150,10 @@ content: >
   *Ładowanie danych...*
   {% else %}
   {% for stop in stops %}
-  ### {{ '🚊' if stop.stop_type == 'TRAM' else '🚌' }} {{ stop.stop_name | default('Przystanek ' ~ stop.stop_id) }}
+  ### {{ '🚊' if stop.stop_type == 'TRAM' else '🚌' }} {{ stop.stop_name | default('Przystanek ' ~ stop.stop_id) }}{{ ' ♿' if stop.wheelchair_accessible }}{{ ' 📞' if stop.on_demand }}
   {% if stop.departures and stop.departures | length > 0 %}
   {% for dep in stop.departures %}
-  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}** {{ dep.headsign[:20] }} | **{{ dep.time }}** ({{ dep.minutes }} min){% if dep.delay and dep.delay > 1 %} 🔴+{{ dep.delay | int }}{% endif %}
+  {{ '🟢' if dep.realtime else '⚪' }} **{{ dep.route }}**{% if dep.vehicle_code %} ({{dep.vehicle_code}}){% endif %}{% if dep.vehicle_wheelchair_accessible %} ♿{% endif %} {{ dep.headsign[:20] }} | **{{ dep.time }}** ({{ dep.minutes }} min){% if dep.delay and dep.delay > 1 %} 🔴+{{ dep.delay | int }}{% endif %}
 
   {% endfor %}
   {% else %}
@@ -264,6 +278,21 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.3.0 (2026-01-11)
+- ✅ **Nowe pola w odjazdach**:
+  - `vehicle_code` - numer pojazdu dla śledzenia konkretnego autobusu/tramwaju
+  - `vehicle_wheelchair_accessible` - ♿ **czy pojazd ma rampę dla wózków** (dane z bazy pojazdów ZTM)
+  - `scheduled_time` - czas rozkładowy w formacie HH:MM (sensor panelu)
+  - `theoretical_time` - czas rozkładowy ISO (sensor przystanku, dla automatyzacji)
+  - `last_update` - timestamp ostatniej aktualizacji GPS
+- ✅ **Nowe pola w przystankach**:
+  - `wheelchair_accessible` - ♿ dostępność infrastruktury przystanku dla wózków
+  - `on_demand` - 📞 przystanek na żądanie (wymaga wcześniejszego zgłoszenia)
+  - `zone_border` - 🎫 granica strefy biletowej
+- 🚀 **Baza pojazdów** - integracja z oficjalną bazą pojazdów ZTM (475 pojazdów)
+- 🎨 **Ulepszona karta Lovelace** - pokazuje numery pojazdów i oznaczenia ♿ dla dostępnych pojazdów
+- 📊 **Spójność danych** - wszystkie sensory mają te same pola
 
 ### 1.2.1 (2026-01-11)
 - ✅ **Nowe pole "stop_type"** w sensorze panelu - rozróżnienie BUS/TRAM dla każdego przystanku

@@ -14,6 +14,7 @@ from .const import (
     API_DEPARTURES,
     API_STOPS,
     API_STOPS_GDANSK,
+    API_VEHICLES,
     DOMAIN,
     SCAN_INTERVAL_DEPARTURES,
 )
@@ -42,6 +43,8 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.max_departures = max_departures
         self._stop_names_cache: dict[str, dict[str, Any]] = {}
         self._stop_names_loaded = False
+        self._vehicles_cache: dict[str, dict[str, Any]] = {}
+        self._vehicles_loaded = False
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API."""
@@ -50,6 +53,11 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if not self._stop_names_loaded:
                 await self._load_stop_names()
                 self._stop_names_loaded = True
+
+            # Lazy load vehicles database on first run
+            if not self._vehicles_loaded:
+                await self._load_vehicles()
+                self._vehicles_loaded = True
 
             # Fetch departures for all stops
             departures = await self._fetch_all_departures()
@@ -206,6 +214,9 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "lat": stop.get("stopLat"),
                         "lon": stop.get("stopLon"),
                         "type": stop.get("type", "BUS"),  # API returns "BUS" or "TRAM" as string
+                        "wheelchair_accessible": bool(stop.get("wheelchairBoarding", 0)),
+                        "on_demand": bool(stop.get("onDemand", 0)),
+                        "zone_border": bool(stop.get("ticketZoneBorder", 0)),
                     }
                     found_count += 1
                     _LOGGER.debug("Cached stop %s: %s", stop_id, full_name)
@@ -233,6 +244,9 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "platform": "",
                     "zone": "",
                     "type": "BUS",
+                    "wheelchair_accessible": False,
+                    "on_demand": False,
+                    "zone_border": False,
                     "is_fallback": True,
                 }
 
@@ -257,3 +271,38 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stop_names_cache.clear()
         await self._load_stop_names()
         self._stop_names_loaded = True
+
+    async def _load_vehicles(self) -> None:
+        """Load vehicle database from API."""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    API_VEHICLES, timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    response.raise_for_status()
+                    data = await response.json(content_type=None)
+
+            vehicles = data.get("results", [])
+            for vehicle in vehicles:
+                vehicle_code = str(vehicle.get("vehicleCode", ""))
+                if vehicle_code:
+                    self._vehicles_cache[vehicle_code] = {
+                        "wheelchair_accessible": vehicle.get("wheelchairsRamp", False),
+                        "low_floor": "niskopodłogowy" in vehicle.get("floorHeight", "").lower(),
+                        "air_conditioning": vehicle.get("airConditioning", False),
+                        "usb": vehicle.get("usb", False),
+                        "bike_holders": vehicle.get("bikeHolders", 0),
+                        "brand": vehicle.get("brand", ""),
+                        "model": vehicle.get("model", ""),
+                    }
+
+            _LOGGER.info("Loaded %d vehicles into cache", len(self._vehicles_cache))
+
+        except Exception as err:
+            _LOGGER.warning("Could not load vehicles database: %s", err)
+
+    def get_vehicle_info(self, vehicle_code: int | str | None) -> dict[str, Any]:
+        """Get cached vehicle info."""
+        if vehicle_code is None:
+            return {}
+        return self._vehicles_cache.get(str(vehicle_code), {})

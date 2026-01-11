@@ -136,6 +136,9 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             except (ValueError, TypeError):
                 minutes = -1
 
+            vehicle_code = dep.get("vehicleCode")
+            vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
+
             formatted_departures.append({
                 "route": dep.get("routeShortName", "?"),
                 "headsign": dep.get("headsign", "?"),
@@ -144,6 +147,9 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                 "is_realtime": dep.get("status") == "REALTIME",
                 "estimated_time": est_time,
                 "theoretical_time": dep.get("theoreticalTime", ""),
+                "vehicle_code": vehicle_code,
+                "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+                "last_update": dep.get("timestamp"),
             })
 
         return {
@@ -151,6 +157,9 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             ATTR_STOP_NAME: stop_info.get("name", f"Przystanek {self._stop_id}"),
             ATTR_PLATFORM: stop_info.get("platform", ""),
             ATTR_ZONE: stop_info.get("zone", ""),
+            "wheelchair_accessible": stop_info.get("wheelchair_accessible", False),
+            "on_demand": stop_info.get("on_demand", False),
+            "zone_border": stop_info.get("zone_border", False),
             ATTR_DEPARTURES: formatted_departures,
             "departures_raw": departures,
         }
@@ -215,12 +224,19 @@ class ZTMNextDepartureSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
         dep = departures[0]
         delay_seconds = dep.get("delayInSeconds") or 0
 
+        vehicle_code = dep.get("vehicleCode")
+        vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
+
         return {
             ATTR_ROUTE: dep.get("routeShortName", "?"),
             ATTR_HEADSIGN: dep.get("headsign", "?"),
             ATTR_DELAY: round(delay_seconds / 60, 1),
             ATTR_IS_REALTIME: dep.get("status") == "REALTIME",
             "estimated_time": dep.get("estimatedTime", ""),
+            "theoretical_time": dep.get("theoreticalTime", ""),
+            "vehicle_code": vehicle_code,
+            "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+            "last_update": dep.get("timestamp"),
         }
 
     @property
@@ -260,8 +276,14 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
         for stop_id in self._stop_ids:
             departures = self.coordinator.get_departures(stop_id)
             stop_info = self.coordinator.get_stop_info(stop_id)
+
+            # Extract all stop metadata from single cache lookup
             stop_name = stop_info.get("name", f"Przystanek {stop_id}")
             stop_type = stop_info.get("type", "BUS")
+            wheelchair = stop_info.get("wheelchair_accessible", False)
+            on_demand = stop_info.get("on_demand", False)
+            zone_border = stop_info.get("zone_border", False)
+
             total_departures += len(departures)
 
             # Format departures
@@ -279,6 +301,21 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     minutes = -1
                     time_str = "?"
 
+                # Parse theoretical (scheduled) time
+                theoretical_time_str = None
+                try:
+                    theo_time = dep.get("theoreticalTime", "")
+                    if theo_time:
+                        theo_dt = datetime.fromisoformat(theo_time.replace("Z", "+00:00"))
+                        theo_local = dt_util.as_local(theo_dt)
+                        theoretical_time_str = theo_local.strftime("%H:%M")
+                except (ValueError, TypeError):
+                    pass
+
+                # Get vehicle info
+                vehicle_code = dep.get("vehicleCode")
+                vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
+
                 formatted.append({
                     "route": dep.get("routeShortName", "?"),
                     "headsign": dep.get("headsign", "?"),
@@ -286,12 +323,19 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
                     "realtime": dep.get("status") == "REALTIME",
                     "time": time_str,
+                    "vehicle_code": vehicle_code,
+                    "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+                    "scheduled_time": theoretical_time_str,
+                    "last_update": dep.get("timestamp"),
                 })
 
             stops_data.append({
                 "stop_id": stop_id,
                 "stop_name": stop_name,
                 "stop_type": stop_type,
+                "wheelchair_accessible": wheelchair,
+                "on_demand": on_demand,
+                "zone_border": zone_border,
                 "departures_count": len(departures),
                 "departures": formatted,
             })
