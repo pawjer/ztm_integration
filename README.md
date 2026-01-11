@@ -99,6 +99,8 @@ departures:
     minutes: 3
     delay: 1.5
     is_realtime: true
+    time: "14:35"             # Czas odjazdu (czas lokalny)
+    scheduled_time: "14:33"   # Czas rozkładowy (czas lokalny)
     estimated_time: "2024-01-15T14:35:00Z"
     theoretical_time: "2024-01-15T14:33:00Z"  # Czas rozkładowy
     vehicle_code: 3013        # Numer pojazdu
@@ -108,6 +110,7 @@ departures:
     vehicle_air_conditioning: true  # Klimatyzacja
     vehicle_usb: true         # Porty USB
     vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
+    vehicle_properties_icons: "♿ 🚴 🔽 ❄️ 🔌 ⬇️"  # Ikony właściwości pojazdu
     last_update: "2024-01-15T14:32:49Z"  # Ostatnia aktualizacja GPS
   - route: "258"
     headsign: "Stogi Plaża"
@@ -142,6 +145,7 @@ stops:
         vehicle_air_conditioning: true  # Klimatyzacja
         vehicle_usb: true          # Porty USB
         vehicle_kneeling_mechanism: true  # Mechanizm przyklęku
+        vehicle_properties_icons: "♿ 🚴 🔽 ❄️ 🔌 ⬇️"  # Ikony właściwości pojazdu
         last_update: "2024-01-15T14:32:49Z"
 total_stops: 4
 total_departures: 20
@@ -288,6 +292,22 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.4.0 (2026-01-11)
+- ✅ **Nowe pole `vehicle_properties_icons`** - string z ikonami właściwości pojazdu (♿ 🚴 🔽 ❄️ 🔌 ⬇️)
+- 🏗️ **Refaktoryzacja kodu** - utworzono wspólny model formatowania odjazdów i właściwości pojazdów
+- 📦 **Nowe metody w koordinatorze**:
+  - `format_departure()` - wspólna metoda formatowania odjazdów dla wszystkich sensorów
+  - `format_vehicle_properties()` - wspólna metoda właściwości pojazdów
+  - `get_vehicle_icons()` - generowanie stringu z ikonami
+- 🎨 **Stałe dla ikon** - ikony przeniesione do const.py (ICON_WHEELCHAIR, ICON_BIKE, etc.)
+- 🔧 **Zmniejszenie duplikacji kodu** - usunięto ~150 linii zduplikowanego kodu z sensorów
+
+### 1.3.3 (2026-01-11)
+- ✅ **Dodano pola czasu w formacie HH:MM** do sensor.ztm_stop_* i sensor.ztm_next_*:
+  - `time` - czas odjazdu w formacie lokalnym HH:MM
+  - `scheduled_time` - czas rozkładowy w formacie lokalnym HH:MM
+- 📊 **Spójność danych** - wszystkie sensory mają teraz te same pola czasowe
 
 ### 1.3.2 (2026-01-11)
 - ✅ **Nowe pola właściwości pojazdów**:

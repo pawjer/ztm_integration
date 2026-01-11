@@ -33,3 +33,11 @@ ATTR_HEADSIGN = "headsign"
 ATTR_ROUTE = "route"
 ATTR_PLATFORM = "platform"
 ATTR_ZONE = "zone"
+
+# Vehicle property icons
+ICON_WHEELCHAIR = "♿"
+ICON_BIKE = "🚴"
+ICON_LOW_FLOOR = "🔽"
+ICON_AIR_CONDITIONING = "❄️"
+ICON_USB = "🔌"
+ICON_KNEELING = "⬇️"

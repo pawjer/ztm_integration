@@ -129,33 +129,7 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
         formatted_departures = []
         max_deps = self.coordinator.max_departures
         for dep in departures[:max_deps]:
-            est_time = dep.get("estimatedTime", "")
-            try:
-                est_dt = datetime.fromisoformat(est_time.replace("Z", "+00:00"))
-                minutes = int((est_dt - datetime.now(est_dt.tzinfo)).total_seconds() / 60)
-            except (ValueError, TypeError):
-                minutes = -1
-
-            vehicle_code = dep.get("vehicleCode")
-            vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
-
-            formatted_departures.append({
-                "route": dep.get("routeShortName", "?"),
-                "headsign": dep.get("headsign", "?"),
-                "minutes": minutes,
-                "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
-                "is_realtime": dep.get("status") == "REALTIME",
-                "estimated_time": est_time,
-                "theoretical_time": dep.get("theoreticalTime", ""),
-                "vehicle_code": vehicle_code,
-                "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
-                "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
-                "vehicle_low_floor": vehicle_info.get("low_floor", False),
-                "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
-                "vehicle_usb": vehicle_info.get("usb", False),
-                "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
-                "last_update": dep.get("timestamp"),
-            })
+            formatted_departures.append(self.coordinator.format_departure(dep, include_is_realtime=True))
 
         return {
             ATTR_STOP_ID: self._stop_id,
@@ -227,27 +201,15 @@ class ZTMNextDepartureSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             return {}
 
         dep = departures[0]
-        delay_seconds = dep.get("delayInSeconds") or 0
+        formatted = self.coordinator.format_departure(dep, include_is_realtime=True)
 
-        vehicle_code = dep.get("vehicleCode")
-        vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
+        # Map to legacy attribute names for compatibility
+        formatted[ATTR_ROUTE] = formatted.pop("route")
+        formatted[ATTR_HEADSIGN] = formatted.pop("headsign")
+        formatted[ATTR_DELAY] = formatted.pop("delay")
+        formatted[ATTR_IS_REALTIME] = formatted.pop("is_realtime")
 
-        return {
-            ATTR_ROUTE: dep.get("routeShortName", "?"),
-            ATTR_HEADSIGN: dep.get("headsign", "?"),
-            ATTR_DELAY: round(delay_seconds / 60, 1),
-            ATTR_IS_REALTIME: dep.get("status") == "REALTIME",
-            "estimated_time": dep.get("estimatedTime", ""),
-            "theoretical_time": dep.get("theoreticalTime", ""),
-            "vehicle_code": vehicle_code,
-            "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
-            "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
-            "vehicle_low_floor": vehicle_info.get("low_floor", False),
-            "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
-            "vehicle_usb": vehicle_info.get("usb", False),
-            "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
-            "last_update": dep.get("timestamp"),
-        }
+        return formatted
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -300,49 +262,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             formatted = []
             max_deps = self.coordinator.max_departures
             for dep in departures[:max_deps]:
-                try:
-                    est_time = dep.get("estimatedTime", "")
-                    est_dt = datetime.fromisoformat(est_time.replace("Z", "+00:00"))
-                    minutes = int((est_dt - datetime.now(est_dt.tzinfo)).total_seconds() / 60)
-                    # Convert UTC to local time and format as HH:MM
-                    local_dt = dt_util.as_local(est_dt)
-                    time_str = local_dt.strftime("%H:%M")
-                except (ValueError, TypeError):
-                    minutes = -1
-                    time_str = "?"
-
-                # Parse theoretical (scheduled) time
-                theoretical_time_str = None
-                try:
-                    theo_time = dep.get("theoreticalTime", "")
-                    if theo_time:
-                        theo_dt = datetime.fromisoformat(theo_time.replace("Z", "+00:00"))
-                        theo_local = dt_util.as_local(theo_dt)
-                        theoretical_time_str = theo_local.strftime("%H:%M")
-                except (ValueError, TypeError):
-                    pass
-
-                # Get vehicle info
-                vehicle_code = dep.get("vehicleCode")
-                vehicle_info = self.coordinator.get_vehicle_info(vehicle_code)
-
-                formatted.append({
-                    "route": dep.get("routeShortName", "?"),
-                    "headsign": dep.get("headsign", "?"),
-                    "minutes": minutes,
-                    "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
-                    "realtime": dep.get("status") == "REALTIME",
-                    "time": time_str,
-                    "vehicle_code": vehicle_code,
-                    "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
-                    "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
-                    "vehicle_low_floor": vehicle_info.get("low_floor", False),
-                    "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
-                    "vehicle_usb": vehicle_info.get("usb", False),
-                    "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
-                    "scheduled_time": theoretical_time_str,
-                    "last_update": dep.get("timestamp"),
-                })
+                formatted.append(self.coordinator.format_departure(dep, include_is_realtime=False))
 
             stops_data.append({
                 "stop_id": stop_id,

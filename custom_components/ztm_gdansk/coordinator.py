@@ -9,6 +9,7 @@ from typing import Any
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
     API_DEPARTURES,
@@ -16,6 +17,12 @@ from .const import (
     API_STOPS_GDANSK,
     API_VEHICLES,
     DOMAIN,
+    ICON_AIR_CONDITIONING,
+    ICON_BIKE,
+    ICON_KNEELING,
+    ICON_LOW_FLOOR,
+    ICON_USB,
+    ICON_WHEELCHAIR,
     SCAN_INTERVAL_DEPARTURES,
 )
 
@@ -307,3 +314,88 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if vehicle_code is None:
             return {}
         return self._vehicles_cache.get(str(vehicle_code), {})
+
+    def get_vehicle_icons(self, vehicle_info: dict[str, Any]) -> str:
+        """Generate icon string for vehicle properties."""
+        icons = []
+
+        if vehicle_info.get("wheelchair_accessible"):
+            icons.append(ICON_WHEELCHAIR)
+        if vehicle_info.get("bike_holders", 0) > 0:
+            icons.append(ICON_BIKE)
+        if vehicle_info.get("low_floor"):
+            icons.append(ICON_LOW_FLOOR)
+        if vehicle_info.get("air_conditioning"):
+            icons.append(ICON_AIR_CONDITIONING)
+        if vehicle_info.get("usb"):
+            icons.append(ICON_USB)
+        if vehicle_info.get("kneeling_mechanism"):
+            icons.append(ICON_KNEELING)
+
+        return " ".join(icons)
+
+    def format_vehicle_properties(self, vehicle_code: int | str | None) -> dict[str, Any]:
+        """Get formatted vehicle properties with all fields."""
+        vehicle_info = self.get_vehicle_info(vehicle_code)
+
+        return {
+            "vehicle_code": vehicle_code,
+            "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+            "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
+            "vehicle_low_floor": vehicle_info.get("low_floor", False),
+            "vehicle_air_conditioning": vehicle_info.get("air_conditioning", False),
+            "vehicle_usb": vehicle_info.get("usb", False),
+            "vehicle_kneeling_mechanism": vehicle_info.get("kneeling_mechanism", False),
+            "vehicle_properties_icons": self.get_vehicle_icons(vehicle_info),
+        }
+
+    def format_departure(self, dep: dict[str, Any], include_is_realtime: bool = True) -> dict[str, Any]:
+        """Format a departure with all fields (time conversion, vehicle properties)."""
+        # Calculate minutes until departure
+        est_time = dep.get("estimatedTime", "")
+        try:
+            est_dt = datetime.fromisoformat(est_time.replace("Z", "+00:00"))
+            minutes = int((est_dt - datetime.now(est_dt.tzinfo)).total_seconds() / 60)
+            # Convert UTC to local time
+            local_dt = dt_util.as_local(est_dt)
+            time_str = local_dt.strftime("%H:%M")
+        except (ValueError, TypeError):
+            minutes = -1
+            time_str = "?"
+
+        # Parse scheduled time
+        scheduled_time_str = None
+        try:
+            theo_time = dep.get("theoreticalTime", "")
+            if theo_time:
+                theo_dt = datetime.fromisoformat(theo_time.replace("Z", "+00:00"))
+                theo_local = dt_util.as_local(theo_dt)
+                scheduled_time_str = theo_local.strftime("%H:%M")
+        except (ValueError, TypeError):
+            pass
+
+        # Get vehicle properties
+        vehicle_code = dep.get("vehicleCode")
+        vehicle_props = self.format_vehicle_properties(vehicle_code)
+
+        # Build departure dict
+        result = {
+            "route": dep.get("routeShortName", "?"),
+            "headsign": dep.get("headsign", "?"),
+            "minutes": minutes,
+            "delay": round((dep.get("delayInSeconds") or 0) / 60, 1),
+            "time": time_str,
+            "scheduled_time": scheduled_time_str,
+            "estimated_time": est_time,
+            "theoretical_time": dep.get("theoreticalTime", ""),
+            **vehicle_props,
+            "last_update": dep.get("timestamp"),
+        }
+
+        # Add is_realtime or realtime depending on sensor type
+        if include_is_realtime:
+            result["is_realtime"] = dep.get("status") == "REALTIME"
+        else:
+            result["realtime"] = dep.get("status") == "REALTIME"
+
+        return result
