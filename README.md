@@ -340,6 +340,11 @@ Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multi
 
 ## 📝 Changelog
 
+### 1.6.1 (2026-01-11)
+- 🌐 **Tłumaczenia UI** - dodano polskie i angielskie tłumaczenia interfejsu
+- 📝 **Lokalizacja** - wszystkie etapy konfiguracji i opcji przetłumaczone
+- 🇵🇱 **Polski domyślnie** - interfejs automatycznie w języku systemu
+
 ### 1.6.0 (2026-01-11)
 - ✅ **Konfigurowalny format odjazdów** - możliwość personalizacji wyświetlania odjazdów przez UI
 - 📝 **Nowe pole `departure_string`** - sformatowany tekst odjazdu według szablonu użytkownika

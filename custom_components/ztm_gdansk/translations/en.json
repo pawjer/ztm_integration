@@ -2,72 +2,68 @@
   "config": {
     "step": {
       "user": {
-        "title": "ZTM Gdańsk",
-        "description": "Add ZTM Gdańsk stops to monitor.\n\nFind stop IDs at https://mapa.ztm.gda.pl",
+        "title": "Set up ZTM Gdańsk",
+        "description": "Configure stops and update settings for ZTM Gdańsk real-time departures.",
         "data": {
-          "stops": "Stop IDs",
-          "scan_interval": "Update interval (seconds)",
-          "max_departures": "Maximum departures"
+          "stops": "Stop IDs (comma or space separated)",
+          "scan_interval": "Scan interval (seconds)",
+          "max_departures": "Maximum departures per stop"
         },
         "data_description": {
-          "stops": "Enter stop IDs separated by commas, e.g. 14562, 14563, 2161",
-          "scan_interval": "How often to fetch data (10-300 seconds)",
-          "max_departures": "How many departures to show per stop (1-20)"
+          "stops": "Example: 14562, 14563, 2161"
         }
       }
     },
     "error": {
-      "no_stops": "No valid stop IDs provided",
-      "no_valid_stops": "None of the provided stops are valid",
-      "cannot_connect": "Cannot connect to ZTM API"
+      "no_stops": "No stops provided",
+      "no_valid_stops": "No valid stops found"
     },
     "abort": {
-      "already_configured": "Integration already configured"
+      "already_configured": "This integration is already configured"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "ZTM Gdańsk Options",
-        "description": "Change integration settings",
+        "menu_options": {
+          "general": "General Settings",
+          "icons": "Vehicle Icons",
+          "departure_format": "Departure Format"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "description": "Configure stops, scan interval, and maximum departures.",
         "data": {
-          "stops": "Stop IDs",
-          "scan_interval": "Update interval (seconds)",
-          "max_departures": "Maximum departures"
-        },
-        "data_description": {
-          "stops": "Enter stop IDs separated by commas",
-          "scan_interval": "How often to fetch data (10-300 seconds)",
-          "max_departures": "How many departures to show per stop (1-20)"
+          "stops": "Stop IDs (comma or space separated)",
+          "scan_interval": "Scan interval (seconds)",
+          "max_departures": "Maximum departures per stop"
+        }
+      },
+      "icons": {
+        "title": "Vehicle Property Icons",
+        "description": "Customize icons displayed for vehicle amenities. Defaults: ♿ 🚴 🔽 ❄️ 🔌 ⬇️",
+        "data": {
+          "icon_wheelchair": "Wheelchair accessibility icon",
+          "icon_bike": "Bike rack icon",
+          "icon_low_floor": "Low-floor vehicle icon",
+          "icon_air_conditioning": "Air conditioning icon",
+          "icon_usb": "USB charging icon",
+          "icon_kneeling": "Kneeling mechanism icon"
+        }
+      },
+      "departure_format": {
+        "title": "Departure Format",
+        "description": "Customize departure display format.\n\nAvailable placeholders:\n{route} - route number\n{headsign} - destination\n{time} - departure time (HH:MM)\n{scheduled_time} - scheduled time (HH:MM)\n{minutes} - minutes until departure\n{delay} - delay in minutes\n{vehicle_code} - vehicle number\n{vehicle_properties_icons} - vehicle amenity icons\n{realtime} - real-time data (True/False)\n\nDefault: {route} → {headsign} | {time} ({minutes} min)",
+        "data": {
+          "departure_format": "Format template"
         }
       }
     },
     "error": {
-      "no_stops": "No valid stop IDs provided",
-      "no_valid_stops": "None of the provided stops are valid"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "ztm_stop": {
-        "name": "Stop {stop_id}"
-      },
-      "ztm_next": {
-        "name": "Next departure"
-      },
-      "ztm_panel": {
-        "name": "ZTM Panel"
-      }
-    }
-  },
-  "services": {
-    "refresh_stop_names": {
-      "name": "Refresh stop names",
-      "description": "Clear cache and re-fetch all stop names from API."
-    },
-    "force_update": {
-      "name": "Force update",
-      "description": "Force immediate data refresh."
+      "no_stops": "No stops provided",
+      "no_valid_stops": "No valid stops found"
     }
   }
 }

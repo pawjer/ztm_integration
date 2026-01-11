@@ -2,72 +2,68 @@
   "config": {
     "step": {
       "user": {
-        "title": "ZTM Gdańsk",
-        "description": "Dodaj przystanki ZTM Gdańsk do monitorowania.\n\nNajpierw znajdź numery przystanków na https://mapa.ztm.gda.pl",
+        "title": "Konfiguracja ZTM Gdańsk",
+        "description": "Skonfiguruj przystanki i ustawienia aktualizacji dla odjazdów ZTM Gdańsk w czasie rzeczywistym.",
         "data": {
-          "stops": "Numery przystanków",
+          "stops": "Numery przystanków (oddzielone przecinkami lub spacjami)",
           "scan_interval": "Interwał odświeżania (sekundy)",
-          "max_departures": "Maksymalna liczba odjazdów"
+          "max_departures": "Maksymalna liczba odjazdów na przystanek"
         },
         "data_description": {
-          "stops": "Wpisz numery przystanków oddzielone przecinkami, np. 14562, 14563, 2161",
-          "scan_interval": "Jak często pobierać dane (10-300 sekund)",
-          "max_departures": "Ile odjazdów pokazać dla każdego przystanku (1-20)"
+          "stops": "Przykład: 14562, 14563, 2161"
         }
       }
     },
     "error": {
-      "no_stops": "Nie podano żadnych prawidłowych numerów przystanków",
-      "no_valid_stops": "Żaden z podanych przystanków nie jest prawidłowy",
-      "cannot_connect": "Nie można połączyć z API ZTM"
+      "no_stops": "Nie podano przystanków",
+      "no_valid_stops": "Nie znaleziono prawidłowych przystanków"
     },
     "abort": {
-      "already_configured": "Integracja już skonfigurowana"
+      "already_configured": "Ta integracja jest już skonfigurowana"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Opcje ZTM Gdańsk",
-        "description": "Zmień ustawienia integracji",
+        "menu_options": {
+          "general": "Ustawienia ogólne",
+          "icons": "Ikony pojazdów",
+          "departure_format": "Format odjazdów"
+        }
+      },
+      "general": {
+        "title": "Ustawienia ogólne",
+        "description": "Skonfiguruj przystanki, interwał odświeżania i maksymalną liczbę odjazdów.",
         "data": {
-          "stops": "Numery przystanków",
+          "stops": "Numery przystanków (oddzielone przecinkami lub spacjami)",
           "scan_interval": "Interwał odświeżania (sekundy)",
-          "max_departures": "Maksymalna liczba odjazdów"
-        },
-        "data_description": {
-          "stops": "Wpisz numery przystanków oddzielone przecinkami",
-          "scan_interval": "Jak często pobierać dane (10-300 sekund)",
-          "max_departures": "Ile odjazdów pokazać dla każdego przystanku (1-20)"
+          "max_departures": "Maksymalna liczba odjazdów na przystanek"
+        }
+      },
+      "icons": {
+        "title": "Ikony właściwości pojazdów",
+        "description": "Dostosuj ikony wyświetlane dla udogodnień w pojazdach. Domyślne: ♿ 🚴 🔽 ❄️ 🔌 ⬇️",
+        "data": {
+          "icon_wheelchair": "Ikona dostępności dla wózków",
+          "icon_bike": "Ikona wieszaków na rowery",
+          "icon_low_floor": "Ikona pojazdu niskopodłogowego",
+          "icon_air_conditioning": "Ikona klimatyzacji",
+          "icon_usb": "Ikona ładowania USB",
+          "icon_kneeling": "Ikona mechanizmu przyklęku"
+        }
+      },
+      "departure_format": {
+        "title": "Format odjazdów",
+        "description": "Dostosuj format wyświetlania odjazdów.\n\nDostępne symbole zastępcze:\n{route} - numer linii\n{headsign} - kierunek\n{time} - czas odjazdu (HH:MM)\n{scheduled_time} - czas rozkładowy (HH:MM)\n{minutes} - minuty do odjazdu\n{delay} - opóźnienie w minutach\n{vehicle_code} - numer pojazdu\n{vehicle_properties_icons} - ikony właściwości pojazdu\n{realtime} - dane w czasie rzeczywistym (True/False)\n\nDomyślny: {route} → {headsign} | {time} ({minutes} min)",
+        "data": {
+          "departure_format": "Szablon formatu"
         }
       }
     },
     "error": {
-      "no_stops": "Nie podano żadnych prawidłowych numerów przystanków",
-      "no_valid_stops": "Żaden z podanych przystanków nie jest prawidłowy"
-    }
-  },
-  "entity": {
-    "sensor": {
-      "ztm_stop": {
-        "name": "Przystanek {stop_id}"
-      },
-      "ztm_next": {
-        "name": "Następny odjazd"
-      },
-      "ztm_panel": {
-        "name": "Panel ZTM"
-      }
-    }
-  },
-  "services": {
-    "refresh_stop_names": {
-      "name": "Odśwież nazwy przystanków",
-      "description": "Wyczyść cache i pobierz ponownie nazwy wszystkich przystanków z API."
-    },
-    "force_update": {
-      "name": "Wymuś aktualizację",
-      "description": "Wymuś natychmiastowe pobranie danych o odjazdach."
+      "no_stops": "Nie podano przystanków",
+      "no_valid_stops": "Nie znaleziono prawidłowych przystanków"
     }
   }
 }
