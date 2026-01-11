@@ -38,6 +38,7 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         stop_ids: list[int],
         scan_interval: int = 30,
         max_departures: int = 5,
+        custom_icons: dict[str, str] | None = None,
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
@@ -52,6 +53,16 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stop_names_loaded = False
         self._vehicles_cache: dict[str, dict[str, Any]] = {}
         self._vehicles_loaded = False
+
+        # Store custom icons or use defaults
+        self._icons = {
+            "wheelchair": (custom_icons or {}).get("wheelchair", ICON_WHEELCHAIR),
+            "bike": (custom_icons or {}).get("bike", ICON_BIKE),
+            "low_floor": (custom_icons or {}).get("low_floor", ICON_LOW_FLOOR),
+            "air_conditioning": (custom_icons or {}).get("air_conditioning", ICON_AIR_CONDITIONING),
+            "usb": (custom_icons or {}).get("usb", ICON_USB),
+            "kneeling": (custom_icons or {}).get("kneeling", ICON_KNEELING),
+        }
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API."""
@@ -320,17 +331,17 @@ class ZTMCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         icons = []
 
         if vehicle_info.get("wheelchair_accessible"):
-            icons.append(ICON_WHEELCHAIR)
+            icons.append(self._icons["wheelchair"])
         if vehicle_info.get("bike_holders", 0) > 0:
-            icons.append(ICON_BIKE)
+            icons.append(self._icons["bike"])
         if vehicle_info.get("low_floor"):
-            icons.append(ICON_LOW_FLOOR)
+            icons.append(self._icons["low_floor"])
         if vehicle_info.get("air_conditioning"):
-            icons.append(ICON_AIR_CONDITIONING)
+            icons.append(self._icons["air_conditioning"])
         if vehicle_info.get("usb"):
-            icons.append(ICON_USB)
+            icons.append(self._icons["usb"])
         if vehicle_info.get("kneeling_mechanism"):
-            icons.append(ICON_KNEELING)
+            icons.append(self._icons["kneeling"])
 
         return " ".join(icons)
 

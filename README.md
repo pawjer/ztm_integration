@@ -64,8 +64,25 @@ ztm_gdansk:
 
 1. **Ustawienia** → **Urządzenia i usługi** → **ZTM Gdańsk**
 2. Kliknij **Konfiguruj**
-3. Zmień parametry
+3. Wybierz opcję:
+   - **General** - numery przystanków, interwał odświeżania, liczba odjazdów
+   - **Icons** - dostosuj ikony właściwości pojazdów (♿ 🚴 🔽 ❄️ 🔌 ⬇️)
 4. Integracja automatycznie się przeładuje
+
+### Personalizacja ikon
+
+Możesz dostosować ikony wyświetlane dla właściwości pojazdów:
+
+1. **Ustawienia** → **Urządzenia i usługi** → **ZTM Gdańsk** → **Konfiguruj**
+2. Wybierz **Icons**
+3. Zmień dowolną ikonę (można użyć emoji, symboli lub tekstu):
+   - **Wheelchair** (♿) - dostępność dla wózków
+   - **Bike** (🚴) - wieszaki na rowery
+   - **Low Floor** (🔽) - pojazd niskopodłogowy
+   - **Air Conditioning** (❄️) - klimatyzacja
+   - **USB** (🔌) - porty USB
+   - **Kneeling** (⬇️) - mechanizm przyklęku
+4. Ikony pojawią się w polu `vehicle_properties_icons` każdego odjazdu
 
 ## 🔍 Jak znaleźć ID przystanku?
 
@@ -292,6 +309,19 @@ Integracja korzysta z oficjalnego API [Otwarte dane ZTM w Gdańsku](https://ckan
 Dane udostępniane na licencji [Creative Commons Attribution](https://ckan.multimediagdansk.pl).
 
 ## 📝 Changelog
+
+### 1.5.0 (2026-01-11)
+- ✅ **Konfigurowalne ikony** - możliwość personalizacji ikon właściwości pojazdów przez UI
+- 🎨 **Nowy przepływ opcji** - menu z dwiema opcjami: General i Icons
+- ⚙️ **6 konfigurowalnych ikon**:
+  - Wheelchair (♿) - dostępność dla wózków
+  - Bike (🚴) - wieszaki na rowery
+  - Low Floor (🔽) - pojazd niskopodłogowy
+  - Air Conditioning (❄️) - klimatyzacja
+  - USB (🔌) - porty USB
+  - Kneeling (⬇️) - mechanizm przyklęku
+- 🔧 **Obsługa niestandardowych ikon** - możliwość użycia emoji, symboli lub tekstu
+- 💾 **Automatyczne przeładowanie** - zmiany ikon widoczne natychmiast po zapisaniu
 
 ### 1.4.0 (2026-01-11)
 - ✅ **Nowe pole `vehicle_properties_icons`** - string z ikonami właściwości pojazdu (♿ 🚴 🔽 ❄️ 🔌 ⬇️)

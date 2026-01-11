@@ -16,12 +16,24 @@ from .const import (
     API_DEPARTURES,
     API_STOPS,
     API_STOPS_GDANSK,
+    CONF_ICON_AIR_CONDITIONING,
+    CONF_ICON_BIKE,
+    CONF_ICON_KNEELING,
+    CONF_ICON_LOW_FLOOR,
+    CONF_ICON_USB,
+    CONF_ICON_WHEELCHAIR,
     CONF_MAX_DEPARTURES,
     CONF_SCAN_INTERVAL,
     CONF_STOPS,
     DEFAULT_MAX_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    ICON_AIR_CONDITIONING,
+    ICON_BIKE,
+    ICON_KNEELING,
+    ICON_LOW_FLOOR,
+    ICON_USB,
+    ICON_WHEELCHAIR,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -175,36 +187,46 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Manage the options."""
+        """Show options menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["general", "icons"],
+        )
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage general options (stops, intervals)."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             # Parse stops
             stops_str = user_input.get(CONF_STOPS, "")
             stop_ids = parse_stops_input(stops_str)
-            
+
             if not stop_ids:
                 errors[CONF_STOPS] = "no_stops"
             else:
                 # Validate new stops
                 validation_errors, valid_stops = await validate_stops(self.hass, stop_ids)
-                
+
                 if validation_errors:
                     errors.update(validation_errors)
                 elif valid_stops:
+                    # Merge with existing options (preserve icon settings)
+                    new_options = dict(self.config_entry.options)
+                    new_options.update({
+                        CONF_STOPS: valid_stops,
+                        CONF_SCAN_INTERVAL: user_input.get(
+                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                        ),
+                        CONF_MAX_DEPARTURES: user_input.get(
+                            CONF_MAX_DEPARTURES, DEFAULT_MAX_DEPARTURES
+                        ),
+                    })
+
                     # Update entry
-                    return self.async_create_entry(
-                        title="",
-                        data={
-                            CONF_STOPS: valid_stops,
-                            CONF_SCAN_INTERVAL: user_input.get(
-                                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                            ),
-                            CONF_MAX_DEPARTURES: user_input.get(
-                                CONF_MAX_DEPARTURES, DEFAULT_MAX_DEPARTURES
-                            ),
-                        },
-                    )
+                    return self.async_create_entry(title="", data=new_options)
 
         # Current values
         current_stops = self.config_entry.options.get(
@@ -223,7 +245,7 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
         stops_display = ", ".join(str(s) for s in current_stops)
 
         return self.async_show_form(
-            step_id="init",
+            step_id="general",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_STOPS, default=stops_display): str,
@@ -236,4 +258,47 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
                 }
             ),
             errors=errors,
+        )
+
+    async def async_step_icons(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage icon customization."""
+        if user_input is not None:
+            # Merge with existing options (preserve general settings)
+            new_options = dict(self.config_entry.options)
+            new_options.update({
+                CONF_ICON_WHEELCHAIR: user_input.get(CONF_ICON_WHEELCHAIR, ICON_WHEELCHAIR),
+                CONF_ICON_BIKE: user_input.get(CONF_ICON_BIKE, ICON_BIKE),
+                CONF_ICON_LOW_FLOOR: user_input.get(CONF_ICON_LOW_FLOOR, ICON_LOW_FLOOR),
+                CONF_ICON_AIR_CONDITIONING: user_input.get(CONF_ICON_AIR_CONDITIONING, ICON_AIR_CONDITIONING),
+                CONF_ICON_USB: user_input.get(CONF_ICON_USB, ICON_USB),
+                CONF_ICON_KNEELING: user_input.get(CONF_ICON_KNEELING, ICON_KNEELING),
+            })
+
+            return self.async_create_entry(title="", data=new_options)
+
+        # Get current icon values or defaults
+        current_wheelchair = self.config_entry.options.get(CONF_ICON_WHEELCHAIR, ICON_WHEELCHAIR)
+        current_bike = self.config_entry.options.get(CONF_ICON_BIKE, ICON_BIKE)
+        current_low_floor = self.config_entry.options.get(CONF_ICON_LOW_FLOOR, ICON_LOW_FLOOR)
+        current_ac = self.config_entry.options.get(CONF_ICON_AIR_CONDITIONING, ICON_AIR_CONDITIONING)
+        current_usb = self.config_entry.options.get(CONF_ICON_USB, ICON_USB)
+        current_kneeling = self.config_entry.options.get(CONF_ICON_KNEELING, ICON_KNEELING)
+
+        return self.async_show_form(
+            step_id="icons",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_ICON_WHEELCHAIR, default=current_wheelchair): str,
+                    vol.Optional(CONF_ICON_BIKE, default=current_bike): str,
+                    vol.Optional(CONF_ICON_LOW_FLOOR, default=current_low_floor): str,
+                    vol.Optional(CONF_ICON_AIR_CONDITIONING, default=current_ac): str,
+                    vol.Optional(CONF_ICON_USB, default=current_usb): str,
+                    vol.Optional(CONF_ICON_KNEELING, default=current_kneeling): str,
+                }
+            ),
+            description_placeholders={
+                "defaults": f"Defaults: {ICON_WHEELCHAIR} {ICON_BIKE} {ICON_LOW_FLOOR} {ICON_AIR_CONDITIONING} {ICON_USB} {ICON_KNEELING}",
+            },
         )

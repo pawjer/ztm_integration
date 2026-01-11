@@ -17,6 +17,12 @@ SCAN_INTERVAL_STOPS = timedelta(hours=24)
 CONF_STOPS = "stops"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_MAX_DEPARTURES = "max_departures"
+CONF_ICON_WHEELCHAIR = "icon_wheelchair"
+CONF_ICON_BIKE = "icon_bike"
+CONF_ICON_LOW_FLOOR = "icon_low_floor"
+CONF_ICON_AIR_CONDITIONING = "icon_air_conditioning"
+CONF_ICON_USB = "icon_usb"
+CONF_ICON_KNEELING = "icon_kneeling"
 
 # Defaults
 DEFAULT_SCAN_INTERVAL = 30

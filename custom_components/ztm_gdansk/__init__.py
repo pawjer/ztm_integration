@@ -12,6 +12,12 @@ from homeassistant.core import HomeAssistant, ServiceCall
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
+    CONF_ICON_AIR_CONDITIONING,
+    CONF_ICON_BIKE,
+    CONF_ICON_KNEELING,
+    CONF_ICON_LOW_FLOOR,
+    CONF_ICON_USB,
+    CONF_ICON_WHEELCHAIR,
     CONF_MAX_DEPARTURES,
     CONF_SCAN_INTERVAL,
     CONF_STOPS,
@@ -104,6 +110,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get(CONF_MAX_DEPARTURES, DEFAULT_MAX_DEPARTURES)
     )
 
+    # Get custom icons from options (if configured)
+    custom_icons = None
+    if any(key in entry.options for key in [
+        CONF_ICON_WHEELCHAIR, CONF_ICON_BIKE, CONF_ICON_LOW_FLOOR,
+        CONF_ICON_AIR_CONDITIONING, CONF_ICON_USB, CONF_ICON_KNEELING
+    ]):
+        custom_icons = {
+            "wheelchair": entry.options.get(CONF_ICON_WHEELCHAIR),
+            "bike": entry.options.get(CONF_ICON_BIKE),
+            "low_floor": entry.options.get(CONF_ICON_LOW_FLOOR),
+            "air_conditioning": entry.options.get(CONF_ICON_AIR_CONDITIONING),
+            "usb": entry.options.get(CONF_ICON_USB),
+            "kneeling": entry.options.get(CONF_ICON_KNEELING),
+        }
+
     _LOGGER.info(
         "Setting up ZTM Gdańsk (UI) with %d stops, interval: %ds, max: %d",
         len(stop_ids),
@@ -112,7 +133,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     # Create coordinator
-    coordinator = ZTMCoordinator(hass, stop_ids, scan_interval, max_departures)
+    coordinator = ZTMCoordinator(hass, stop_ids, scan_interval, max_departures, custom_icons)
     await coordinator.async_config_entry_first_refresh()
 
     # Store data
