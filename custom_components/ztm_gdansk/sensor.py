@@ -149,6 +149,7 @@ class ZTMStopSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                 "theoretical_time": dep.get("theoreticalTime", ""),
                 "vehicle_code": vehicle_code,
                 "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+                "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
                 "last_update": dep.get("timestamp"),
             })
 
@@ -236,6 +237,7 @@ class ZTMNextDepartureSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
             "theoretical_time": dep.get("theoreticalTime", ""),
             "vehicle_code": vehicle_code,
             "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+            "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
             "last_update": dep.get("timestamp"),
         }
 
@@ -325,6 +327,7 @@ class ZTMPanelSensor(CoordinatorEntity[ZTMCoordinator], SensorEntity):
                     "time": time_str,
                     "vehicle_code": vehicle_code,
                     "vehicle_wheelchair_accessible": vehicle_info.get("wheelchair_accessible", False),
+                    "vehicle_bike_capacity": vehicle_info.get("bike_holders", 0),
                     "scheduled_time": theoretical_time_str,
                     "last_update": dep.get("timestamp"),
                 })
