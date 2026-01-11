@@ -169,9 +169,6 @@ class ZTMGdanskConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
-            description_placeholders={
-                "example_stops": "14562, 14563, 2161",
-            },
         )
 
     @staticmethod
@@ -300,9 +297,6 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(CONF_ICON_KNEELING, default=current_kneeling): str,
                 }
             ),
-            description_placeholders={
-                "defaults": f"Defaults: {ICON_WHEELCHAIR} {ICON_BIKE} {ICON_LOW_FLOOR} {ICON_AIR_CONDITIONING} {ICON_USB} {ICON_KNEELING}",
-            },
         )
 
     async def async_step_departure_format(
@@ -328,19 +322,4 @@ class ZTMGdanskOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(CONF_DEPARTURE_FORMAT, default=current_format): str,
                 }
             ),
-            description_placeholders={
-                "default": DEFAULT_DEPARTURE_FORMAT,
-                "placeholders": (
-                    "Available placeholders:\n"
-                    "{route} - route number\n"
-                    "{headsign} - destination\n"
-                    "{time} - departure time (HH:MM)\n"
-                    "{scheduled_time} - scheduled time (HH:MM)\n"
-                    "{minutes} - minutes until departure\n"
-                    "{delay} - delay in minutes\n"
-                    "{vehicle_code} - vehicle number\n"
-                    "{vehicle_properties_icons} - vehicle amenity icons\n"
-                    "{realtime} - True/False for real-time data"
-                ),
-            },
         )
